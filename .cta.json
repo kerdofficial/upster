@@ -1,8 +1,8 @@
 {
-  "projectName": "start-app",
+  "projectName": "upster",
   "mode": "file-router",
   "typescript": true,
-  "packageManager": "pnpm",
+  "packageManager": "bun",
   "includeExamples": false,
   "tailwind": true,
   "addOnOptions": {},

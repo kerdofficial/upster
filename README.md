@@ -1,21 +1,23 @@
-# TanStack Start + shadcn/ui
+# Upster
 
-This is a template for a new TanStack Start project with React, TypeScript, and shadcn/ui.
+Upster is a local Dockerized dashboard for publishing short-lived mini apps through Cloudflare Tunnel.
 
-## Adding components
+## Development
 
-To add components to your app, run the following command:
+Run the local dashboard on port 3377:
 
 ```bash
-npx shadcn@latest add button
+bun run dev
 ```
 
-This will place the ui components in the `components` directory.
+Run the full stack with Docker:
 
-## Using components
+```bash
+docker compose up --build
+```
 
-To use the components in your app, import them as follows:
+## Validation
 
-```tsx
-import { Button } from "@/components/ui/button";
+```bash
+bun run validate
 ```
