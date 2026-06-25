@@ -1,0 +1,172 @@
+import type { CloudflareConfig } from "@/features/pills/types"
+
+type CloudflareResult<T> = {
+  success: boolean
+  errors?: Array<{ code: number; message: string }>
+  result: T
+}
+
+type TunnelResult = {
+  id: string
+  name: string
+}
+
+type DnsRecordResult = {
+  id: string
+  name: string
+  content: string
+}
+
+type FetchLike = typeof fetch
+
+export class CloudflareClient {
+  private readonly baseUrl = "https://api.cloudflare.com/client/v4"
+
+  constructor(
+    private readonly config: CloudflareConfig,
+    private readonly fetcher: FetchLike = fetch
+  ) {}
+
+  async validateToken() {
+    await this.request<{ id: string }>("/user/tokens/verify", {
+      method: "GET",
+    })
+  }
+
+  async createRemoteTunnel(name: string) {
+    const result = await this.request<TunnelResult>(
+      `/accounts/${this.config.accountId}/cfd_tunnel`,
+      {
+        method: "POST",
+        body: JSON.stringify({ name, config_src: "cloudflare" }),
+      }
+    )
+
+    return result
+  }
+
+  async updateTunnelConfig(input: {
+    tunnelId: string
+    hostname: string
+    appPort: number
+  }) {
+    await this.request<unknown>(
+      `/accounts/${this.config.accountId}/cfd_tunnel/${input.tunnelId}/configurations`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          config: {
+            ingress: [
+              {
+                hostname: input.hostname,
+                service: `http://127.0.0.1:${input.appPort}`,
+              },
+              {
+                service: "http_status:404",
+              },
+            ],
+          },
+        }),
+      }
+    )
+  }
+
+  async ensureDnsRecord(input: {
+    hostname: string
+    tunnelId: string
+    existingRecordId?: string | null
+  }) {
+    const content = `${input.tunnelId}.cfargotunnel.com`
+
+    if (input.existingRecordId) {
+      const result = await this.request<DnsRecordResult>(
+        `/zones/${this.config.zoneId}/dns_records/${input.existingRecordId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            type: "CNAME",
+            name: input.hostname,
+            content,
+            proxied: true,
+          }),
+        }
+      )
+
+      return result
+    }
+
+    const existing = await this.findDnsRecord(input.hostname)
+
+    if (existing) {
+      if (existing.content !== content) {
+        throw new Error("DNS record already exists with a different target.")
+      }
+
+      return existing
+    }
+
+    return this.request<DnsRecordResult>(
+      `/zones/${this.config.zoneId}/dns_records`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          type: "CNAME",
+          name: input.hostname,
+          content,
+          proxied: true,
+        }),
+      }
+    )
+  }
+
+  async fetchTunnelToken(tunnelId: string) {
+    return this.request<string>(
+      `/accounts/${this.config.accountId}/cfd_tunnel/${tunnelId}/token`,
+      {
+        method: "GET",
+      }
+    )
+  }
+
+  private async findDnsRecord(hostname: string) {
+    const params = new URLSearchParams({
+      type: "CNAME",
+      name: hostname,
+    })
+    const records = await this.request<Array<DnsRecordResult>>(
+      `/zones/${this.config.zoneId}/dns_records?${params.toString()}`,
+      {
+        method: "GET",
+      }
+    )
+
+    return records[0] ?? null
+  }
+
+  private async request<T>(path: string, init: RequestInit) {
+    const response = await this.fetcher(`${this.baseUrl}${path}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${this.config.apiToken}`,
+        "Content-Type": "application/json",
+        ...init.headers,
+      },
+    })
+
+    const payload = (await response.json()) as CloudflareResult<T>
+
+    if (!response.ok || !payload.success) {
+      const message =
+        payload.errors?.map((error) => error.message).join(", ") ||
+        "Cloudflare request failed."
+
+      throw new Error(message)
+    }
+
+    return payload.result
+  }
+}
+
+export function createCloudflareClient(config: CloudflareConfig) {
+  return new CloudflareClient(config)
+}
