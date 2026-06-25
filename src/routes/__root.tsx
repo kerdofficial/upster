@@ -2,6 +2,9 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { AppShell } from "@/components/app-shell"
+import { CloudflareVaultProvider } from "@/features/secrets/cloudflare-vault-provider"
 import appCss from "../styles.css?url"
 
 export const Route = createRootRoute({
@@ -15,7 +18,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Starter",
+        title: "Upster",
       },
     ],
     links: [
@@ -40,15 +43,19 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
-        {children}
+      <body className="dark">
+        <TooltipProvider>
+          <CloudflareVaultProvider>
+            <AppShell>{children}</AppShell>
+          </CloudflareVaultProvider>
+        </TooltipProvider>
         <TanStackDevtools
           config={{
             position: "bottom-right",
           }}
           plugins={[
             {
-              name: "Tanstack Router",
+              name: "TanStack Router",
               render: <TanStackRouterDevtoolsPanel />,
             },
           ]}

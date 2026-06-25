@@ -8,44 +8,168 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from "./routes/__root"
-import { Route as IndexRouteImport } from "./routes/index"
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsRuntimeRouteImport } from './routes/settings/runtime'
+import { Route as SettingsCloudflareRouteImport } from './routes/settings/cloudflare'
+import { Route as PillsPillIdRouteImport } from './routes/pills/$pillId'
+import { Route as ApiSetupUnlockEnvelopeRouteImport } from './routes/api/setup/unlock-envelope'
+import { Route as ApiRunsRunIdTerminalRouteImport } from './routes/api/runs/$runId/terminal'
+import { Route as ApiRunsRunIdMetricsRouteImport } from './routes/api/runs/$runId/metrics'
 
 const IndexRoute = IndexRouteImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRuntimeRoute = SettingsRuntimeRouteImport.update({
+  id: '/settings/runtime',
+  path: '/settings/runtime',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsCloudflareRoute = SettingsCloudflareRouteImport.update({
+  id: '/settings/cloudflare',
+  path: '/settings/cloudflare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PillsPillIdRoute = PillsPillIdRouteImport.update({
+  id: '/pills/$pillId',
+  path: '/pills/$pillId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSetupUnlockEnvelopeRoute = ApiSetupUnlockEnvelopeRouteImport.update({
+  id: '/api/setup/unlock-envelope',
+  path: '/api/setup/unlock-envelope',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRunsRunIdTerminalRoute = ApiRunsRunIdTerminalRouteImport.update({
+  id: '/api/runs/$runId/terminal',
+  path: '/api/runs/$runId/terminal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRunsRunIdMetricsRoute = ApiRunsRunIdMetricsRouteImport.update({
+  id: '/api/runs/$runId/metrics',
+  path: '/api/runs/$runId/metrics',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexRoute
+  '/': typeof IndexRoute
+  '/pills/$pillId': typeof PillsPillIdRoute
+  '/settings/cloudflare': typeof SettingsCloudflareRoute
+  '/settings/runtime': typeof SettingsRuntimeRoute
+  '/api/setup/unlock-envelope': typeof ApiSetupUnlockEnvelopeRoute
+  '/api/runs/$runId/metrics': typeof ApiRunsRunIdMetricsRoute
+  '/api/runs/$runId/terminal': typeof ApiRunsRunIdTerminalRoute
 }
 export interface FileRoutesByTo {
-  "/": typeof IndexRoute
+  '/': typeof IndexRoute
+  '/pills/$pillId': typeof PillsPillIdRoute
+  '/settings/cloudflare': typeof SettingsCloudflareRoute
+  '/settings/runtime': typeof SettingsRuntimeRoute
+  '/api/setup/unlock-envelope': typeof ApiSetupUnlockEnvelopeRoute
+  '/api/runs/$runId/metrics': typeof ApiRunsRunIdMetricsRoute
+  '/api/runs/$runId/terminal': typeof ApiRunsRunIdTerminalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  "/": typeof IndexRoute
+  '/': typeof IndexRoute
+  '/pills/$pillId': typeof PillsPillIdRoute
+  '/settings/cloudflare': typeof SettingsCloudflareRoute
+  '/settings/runtime': typeof SettingsRuntimeRoute
+  '/api/setup/unlock-envelope': typeof ApiSetupUnlockEnvelopeRoute
+  '/api/runs/$runId/metrics': typeof ApiRunsRunIdMetricsRoute
+  '/api/runs/$runId/terminal': typeof ApiRunsRunIdTerminalRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: "/"
+  fullPaths:
+    | '/'
+    | '/pills/$pillId'
+    | '/settings/cloudflare'
+    | '/settings/runtime'
+    | '/api/setup/unlock-envelope'
+    | '/api/runs/$runId/metrics'
+    | '/api/runs/$runId/terminal'
   fileRoutesByTo: FileRoutesByTo
-  to: "/"
-  id: "__root__" | "/"
+  to:
+    | '/'
+    | '/pills/$pillId'
+    | '/settings/cloudflare'
+    | '/settings/runtime'
+    | '/api/setup/unlock-envelope'
+    | '/api/runs/$runId/metrics'
+    | '/api/runs/$runId/terminal'
+  id:
+    | '__root__'
+    | '/'
+    | '/pills/$pillId'
+    | '/settings/cloudflare'
+    | '/settings/runtime'
+    | '/api/setup/unlock-envelope'
+    | '/api/runs/$runId/metrics'
+    | '/api/runs/$runId/terminal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PillsPillIdRoute: typeof PillsPillIdRoute
+  SettingsCloudflareRoute: typeof SettingsCloudflareRoute
+  SettingsRuntimeRoute: typeof SettingsRuntimeRoute
+  ApiSetupUnlockEnvelopeRoute: typeof ApiSetupUnlockEnvelopeRoute
+  ApiRunsRunIdMetricsRoute: typeof ApiRunsRunIdMetricsRoute
+  ApiRunsRunIdTerminalRoute: typeof ApiRunsRunIdTerminalRoute
 }
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/"
-      path: "/"
-      fullPath: "/"
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/runtime': {
+      id: '/settings/runtime'
+      path: '/settings/runtime'
+      fullPath: '/settings/runtime'
+      preLoaderRoute: typeof SettingsRuntimeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/cloudflare': {
+      id: '/settings/cloudflare'
+      path: '/settings/cloudflare'
+      fullPath: '/settings/cloudflare'
+      preLoaderRoute: typeof SettingsCloudflareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pills/$pillId': {
+      id: '/pills/$pillId'
+      path: '/pills/$pillId'
+      fullPath: '/pills/$pillId'
+      preLoaderRoute: typeof PillsPillIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/setup/unlock-envelope': {
+      id: '/api/setup/unlock-envelope'
+      path: '/api/setup/unlock-envelope'
+      fullPath: '/api/setup/unlock-envelope'
+      preLoaderRoute: typeof ApiSetupUnlockEnvelopeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/runs/$runId/terminal': {
+      id: '/api/runs/$runId/terminal'
+      path: '/api/runs/$runId/terminal'
+      fullPath: '/api/runs/$runId/terminal'
+      preLoaderRoute: typeof ApiRunsRunIdTerminalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/runs/$runId/metrics': {
+      id: '/api/runs/$runId/metrics'
+      path: '/api/runs/$runId/metrics'
+      fullPath: '/api/runs/$runId/metrics'
+      preLoaderRoute: typeof ApiRunsRunIdMetricsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -53,14 +177,20 @@ declare module "@tanstack/react-router" {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PillsPillIdRoute: PillsPillIdRoute,
+  SettingsCloudflareRoute: SettingsCloudflareRoute,
+  SettingsRuntimeRoute: SettingsRuntimeRoute,
+  ApiSetupUnlockEnvelopeRoute: ApiSetupUnlockEnvelopeRoute,
+  ApiRunsRunIdMetricsRoute: ApiRunsRunIdMetricsRoute,
+  ApiRunsRunIdTerminalRoute: ApiRunsRunIdTerminalRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from "./router.tsx"
-import type { createStart } from "@tanstack/react-start"
-declare module "@tanstack/react-start" {
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
