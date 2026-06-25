@@ -1,0 +1,11 @@
+node_modules
+dist
+dist-ssr
+.git
+.tanstack
+.vinxi
+.output
+.wrangler
+*.local
+.env*
+coverage

@@ -1,0 +1,27 @@
+FROM oven/bun:1.3.13-debian AS base
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o /tmp/cloudflared.deb \
+  && apt-get install -y /tmp/cloudflared.deb \
+  && rm -rf /var/lib/apt/lists/* /tmp/cloudflared.deb
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+COPY . .
+RUN bun run build
+
+ENV NODE_ENV=production
+ENV UPSTER_PORT=3377
+ENV UPSTER_DATA_DIR=/data
+ENV UPSTER_WORKSPACE_ROOTS=/workspaces
+ENV UPSTER_APP_PORT_RANGE=41000-49151
+ENV UPSTER_METRICS_PORT_RANGE=52000-60999
+ENV DATABASE_URL=http://db:8080
+
+EXPOSE 3377
+
+CMD ["bun", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3377"]
