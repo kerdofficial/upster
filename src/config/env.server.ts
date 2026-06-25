@@ -9,6 +9,7 @@ export type PortRange = {
 export type UpsterConfig = {
   dataDir: string
   databaseUrl: string
+  hostWorkspaceRoot: string | null
   workspaceRoots: Array<string>
   appPortRange: PortRange
   metricsPortRange: PortRange
@@ -49,12 +50,14 @@ function parseWorkspaceRoots(value: string | undefined) {
 
 export function getUpsterConfig(): UpsterConfig {
   const dataDir = resolve(process.env.UPSTER_DATA_DIR ?? ".upster")
+  const hostWorkspaceRoot = process.env.UPSTER_HOST_WORKSPACE?.trim()
   mkdirSync(dataDir, { recursive: true })
 
   return {
     dataDir,
     databaseUrl:
       process.env.DATABASE_URL ?? `file:${resolve(dataDir, "upster.db")}`,
+    hostWorkspaceRoot: hostWorkspaceRoot ? resolve(hostWorkspaceRoot) : null,
     workspaceRoots: parseWorkspaceRoots(process.env.UPSTER_WORKSPACE_ROOTS),
     appPortRange: parsePortRange(process.env.UPSTER_APP_PORT_RANGE, {
       min: 41000,

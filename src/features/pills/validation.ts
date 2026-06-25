@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs"
-import { relative, resolve } from "node:path"
+import { isAbsolute, relative, resolve } from "node:path"
 
 export function slugify(value: string) {
   return value
@@ -20,16 +20,20 @@ export function assertValidHostnameLabel(slug: string) {
 
 export function ensureWorkspacePath(
   path: string,
-  workspaceRoots: Array<string>
+  workspaceRoots: Array<string>,
+  hostWorkspaceRoot?: string | null
 ) {
-  const resolvedPath = resolve(path)
+  const resolvedPath = resolveWorkspacePath(
+    path,
+    workspaceRoots,
+    hostWorkspaceRoot
+  )
   const allowed = workspaceRoots.some((root) => {
     const resolvedRoot = resolve(root)
     const distance = relative(resolvedRoot, resolvedPath)
 
     return (
-      distance === "" ||
-      (!distance.startsWith("..") && !resolve(distance).startsWith("/"))
+      distance === "" || (!distance.startsWith("..") && !isAbsolute(distance))
     )
   })
 
@@ -39,6 +43,30 @@ export function ensureWorkspacePath(
 
   if (!existsSync(resolvedPath)) {
     throw new Error("Path does not exist.")
+  }
+
+  return resolvedPath
+}
+
+export function resolveWorkspacePath(
+  path: string,
+  workspaceRoots: Array<string>,
+  hostWorkspaceRoot?: string | null
+) {
+  const resolvedPath = resolve(path)
+
+  if (!hostWorkspaceRoot || !workspaceRoots.length) {
+    return resolvedPath
+  }
+
+  const resolvedHostRoot = resolve(hostWorkspaceRoot)
+  const distance = relative(resolvedHostRoot, resolvedPath)
+
+  if (
+    distance === "" ||
+    (!distance.startsWith("..") && !isAbsolute(distance))
+  ) {
+    return resolve(workspaceRoots[0], distance)
   }
 
   return resolvedPath

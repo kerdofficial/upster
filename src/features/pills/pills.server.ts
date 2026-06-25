@@ -21,8 +21,16 @@ export async function createPill(input: CreatePillInput) {
 
   assertValidHostnameLabel(slug)
 
-  const repoPath = ensureWorkspacePath(input.repoPath, config.workspaceRoots)
-  const cwd = ensureWorkspacePath(input.cwd || repoPath, config.workspaceRoots)
+  const repoPath = ensureWorkspacePath(
+    input.repoPath,
+    config.workspaceRoots,
+    config.hostWorkspaceRoot
+  )
+  const cwd = ensureWorkspacePath(
+    input.cwd || repoPath,
+    config.workspaceRoots,
+    config.hostWorkspaceRoot
+  )
   const argv = parseCommand(input.command)
 
   return createPillRecord({
@@ -60,6 +68,7 @@ export function getRuntimeSettings() {
 
   return {
     workspaceRoots: config.workspaceRoots,
+    hostWorkspaceRoot: config.hostWorkspaceRoot,
     appPortRange: config.appPortRange,
     metricsPortRange: config.metricsPortRange,
     publicOrigin: config.publicOrigin,

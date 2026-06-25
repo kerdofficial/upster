@@ -49,16 +49,20 @@ function RuntimeSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Workspace roots</CardTitle>
+          <CardTitle>Workspace mount</CardTitle>
           <CardDescription>
-            Pills can only be created from these mounted paths.
+            Host paths are translated to container paths before validation.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-2">
+        <CardContent className="flex flex-col gap-3">
+          {settings.hostWorkspaceRoot && (
+            <Setting
+              label="Host workspace root"
+              value={settings.hostWorkspaceRoot}
+            />
+          )}
           {settings.workspaceRoots.map((root) => (
-            <code key={root} className="rounded-md bg-muted px-2 py-1 text-xs">
-              {root}
-            </code>
+            <Setting key={root} label="Container workspace root" value={root} />
           ))}
         </CardContent>
       </Card>

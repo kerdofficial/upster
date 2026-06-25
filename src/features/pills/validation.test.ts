@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest"
 import {
   assertValidHostnameLabel,
   ensureWorkspacePath,
+  resolveWorkspacePath,
   slugify,
 } from "@/features/pills/validation"
 
@@ -29,6 +30,34 @@ describe("pill validation", () => {
     } finally {
       rmSync(root, { recursive: true, force: true })
       rmSync(outside, { recursive: true, force: true })
+    }
+  })
+
+  it("translates host workspace paths to mounted container paths", () => {
+    const hostRoot = mkdtempSync(join(tmpdir(), "upster-host-"))
+    const containerRoot = mkdtempSync(join(tmpdir(), "upster-container-"))
+    const containerProject = join(containerRoot, "apps", "sample")
+
+    mkdirSync(containerProject, { recursive: true })
+
+    try {
+      expect(
+        resolveWorkspacePath(
+          join(hostRoot, "apps", "sample"),
+          [containerRoot],
+          hostRoot
+        )
+      ).toBe(containerProject)
+      expect(
+        ensureWorkspacePath(
+          join(hostRoot, "apps", "sample"),
+          [containerRoot],
+          hostRoot
+        )
+      ).toBe(containerProject)
+    } finally {
+      rmSync(hostRoot, { recursive: true, force: true })
+      rmSync(containerRoot, { recursive: true, force: true })
     }
   })
 })
