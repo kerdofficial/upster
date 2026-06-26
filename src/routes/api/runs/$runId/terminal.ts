@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 import { getRunLogs } from "@/db/repositories.server"
+import { verifyRequestSession } from "@/features/auth/session.server"
 import { subscribeRunLogs } from "@/features/terminal/log-bus.server"
 
 function formatSse(data: unknown) {
@@ -11,6 +12,13 @@ export const Route = createFileRoute("/api/runs/$runId/terminal")({
   server: {
     handlers: {
       GET: async ({ params, request }) => {
+        const session = await verifyRequestSession(
+          request.headers.get("cookie")
+        )
+        if (!session) {
+          return new Response("Unauthorized", { status: 401 })
+        }
+
         const encoder = new TextEncoder()
 
         const stream = new ReadableStream({
