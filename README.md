@@ -16,6 +16,7 @@ Do not use Upster for untrusted repositories, public multi-user access, or sensi
 - The dashboard port is published on `127.0.0.1` by default. Set `UPSTER_BIND_HOST=0.0.0.0` to expose it on the local network, and only do so behind TLS once you have set an admin passphrase.
 - Cloudflare credentials are stored only as encrypted vault ciphertext and are decrypted in the browser, never persisted in plaintext.
 - Pill processes run with a minimal environment and never inherit the dashboard environment or its secrets.
+- The libSQL database can require an auth token so pill processes cannot read it directly. Generate credentials with `bun run db:credentials` and set `SQLD_AUTH_JWT_KEY` (db) and `DATABASE_AUTH_TOKEN` (dashboard).
 - Restrict which executables pills may run with `UPSTER_ALLOWED_COMMANDS` (comma separated, by name or full path). Leave empty to allow any executable.
 - Override the session signing secret with `UPSTER_SESSION_SECRET`; otherwise one is generated and persisted locally.
 

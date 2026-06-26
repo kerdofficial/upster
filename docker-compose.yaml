@@ -12,6 +12,7 @@ services:
       UPSTER_PUBLIC_ORIGIN: "${UPSTER_PUBLIC_ORIGIN:-https://localhost:3377}"
       UPSTER_SESSION_SECRET: "${UPSTER_SESSION_SECRET:-}"
       DATABASE_URL: "${DATABASE_URL:-http://db:8080}"
+      DATABASE_AUTH_TOKEN: "${DATABASE_AUTH_TOKEN:-}"
       CLOUDFLARED_BIN: "${CLOUDFLARED_BIN:-cloudflared}"
     ports:
       - "${UPSTER_BIND_HOST:-127.0.0.1}:${UPSTER_PORT:-3377}:${UPSTER_PORT:-3377}"
@@ -23,6 +24,9 @@ services:
 
   db:
     image: ghcr.io/tursodatabase/libsql-server:latest
+    environment:
+      SQLD_NODE: primary
+      SQLD_AUTH_JWT_KEY: "${SQLD_AUTH_JWT_KEY:-}"
     volumes:
       - upster_db:/var/lib/sqld
 

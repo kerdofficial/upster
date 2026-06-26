@@ -5,7 +5,10 @@ import { getUpsterConfig } from "@/config/env.server"
 import * as schema from "@/db/schema"
 
 const config = getUpsterConfig()
-const client = createClient({ url: config.databaseUrl })
+const client = createClient({
+  url: config.databaseUrl,
+  authToken: config.databaseAuthToken ?? undefined,
+})
 
 export const db = drizzle(client, { schema })
 

@@ -9,6 +9,7 @@ export type PortRange = {
 export type UpsterConfig = {
   dataDir: string
   databaseUrl: string
+  databaseAuthToken: string | null
   hostWorkspaceRoot: string | null
   workspaceRoots: Array<string>
   allowedCommands: Array<string>
@@ -65,6 +66,7 @@ export function getUpsterConfig(): UpsterConfig {
     dataDir,
     databaseUrl:
       process.env.DATABASE_URL ?? `file:${resolve(dataDir, "upster.db")}`,
+    databaseAuthToken: process.env.DATABASE_AUTH_TOKEN?.trim() || null,
     hostWorkspaceRoot: hostWorkspaceRoot ? resolve(hostWorkspaceRoot) : null,
     workspaceRoots: parseWorkspaceRoots(process.env.UPSTER_WORKSPACE_ROOTS),
     allowedCommands: parseAllowedCommands(process.env.UPSTER_ALLOWED_COMMANDS),
