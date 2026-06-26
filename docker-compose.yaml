@@ -12,7 +12,7 @@ services:
       DATABASE_URL: "${DATABASE_URL:-http://db:8080}"
       CLOUDFLARED_BIN: "${CLOUDFLARED_BIN:-cloudflared}"
     ports:
-      - "${UPSTER_PORT:-3377}:${UPSTER_PORT:-3377}"
+      - "${UPSTER_BIND_HOST:-127.0.0.1}:${UPSTER_PORT:-3377}:${UPSTER_PORT:-3377}"
     volumes:
       - upster_data:/data
       - ${UPSTER_HOST_WORKSPACE:-./workspaces}:/workspaces:rw
