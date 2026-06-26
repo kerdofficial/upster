@@ -47,9 +47,13 @@ detailed guidance for security-relevant changes. The mandatory rules:
   public.
 - Server routes under `/api/*` must verify the session manually; server-function
   middleware does not run for them.
-- Never import a `*.server.ts` module into a client-reachable `*.functions.ts`
-  file or component. Middleware pulls server-only code in inside its `.server()`
-  callback. The dev server hides this mistake; the production build catches it.
+- In a client-reachable `*.functions.ts` file, server-only imports may be used
+  only inside a `.handler()` body, which the compiler strips from the client
+  bundle. Never reference server-only code in the builder chain (`.middleware`,
+  `.validator`), at module scope, or in a component. Middleware must live in a
+  non-`*.server.ts` file and pull server-only code in inside its `.server()`
+  callback. The dev server hides these mistakes; the production build catches
+  them.
 - Keep Cloudflare permissions, environment variables, and container
   capabilities least-privilege, and document new ones in `.env.example` and
   `SECURITY.md`.

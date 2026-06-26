@@ -113,11 +113,14 @@ When making security-relevant changes:
   every new server function unless it is intentionally public (only the auth
   status, login, setup, and logout functions are public). New `/api/*` server
   routes must verify the session manually, the way `terminal` and `metrics` do.
-- **Keep server-only code out of the client bundle.** Do not import a
-  `*.server.ts` module into a client-reachable `*.functions.ts` or component.
-  Middleware that needs server-only code should pull it in inside its `.server()`
-  callback (see `src/features/auth/auth-middleware.ts`). The dev server hides
-  these boundary mistakes; the production build catches them.
+- **Keep server-only code out of the client bundle.** In a client-reachable
+  `*.functions.ts` file, server-only imports may be used only inside a
+  `.handler()` body (the compiler strips those). Never reference server-only
+  code in the builder chain (`.middleware`, `.validator`), at module scope, or in
+  a component. Middleware must live in a non-`*.server.ts` file and pull
+  server-only code in inside its `.server()` callback (see
+  `src/features/auth/auth-middleware.ts`). The dev server hides these boundary
+  mistakes; the production build catches them.
 - **Verify with the production build, not only dev.** Run `bun run build` and,
   when the change affects runtime behavior, the Docker stack. Dev-only checks
   have previously masked both build failures and SSR auth-redirect differences.
