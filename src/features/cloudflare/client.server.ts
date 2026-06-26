@@ -126,11 +126,21 @@ export class CloudflareClient {
     const content = `${input.tunnelId}.cfargotunnel.com`
 
     if (input.existingRecordId) {
-      return this.updateDnsRecord({
-        id: input.existingRecordId,
-        hostname: input.hostname,
-        content,
-      })
+      const current = await this.getDnsRecordById(input.existingRecordId)
+
+      if (current) {
+        if (!isManagedByUpster(current)) {
+          throw new Error(
+            `DNS record for ${input.hostname} already exists and is not managed by Upster. Refusing to overwrite it.`
+          )
+        }
+
+        return this.updateDnsRecord({
+          id: current.id,
+          hostname: input.hostname,
+          content,
+        })
+      }
     }
 
     const existing = await this.findDnsRecord(input.hostname)
@@ -193,6 +203,19 @@ export class CloudflareClient {
         method: "DELETE",
       }
     )
+  }
+
+  private async getDnsRecordById(id: string) {
+    try {
+      return await this.request<DnsRecordResult>(
+        `/zones/${this.config.zoneId}/dns_records/${id}`,
+        {
+          method: "GET",
+        }
+      )
+    } catch {
+      return null
+    }
   }
 
   private async findDnsRecord(hostname: string) {
