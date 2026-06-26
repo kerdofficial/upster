@@ -173,7 +173,7 @@ function PortSummary({
   metricsPort: number | null
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-wrap gap-1.5">
       <PortValue label="App" value={appPort} />
       <PortValue label="Metrics" value={metricsPort} />
     </div>
