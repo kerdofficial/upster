@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { CreatePillForm } from "@/features/pills/components/create-pill-form"
+import { CreatePillDialog } from "@/features/pills/components/create-pill-dialog"
 import { ExpiryPicker } from "@/features/pills/components/expiry-picker"
 import { PillActions } from "@/features/pills/components/pill-actions"
 import { StatusBadge } from "@/features/pills/components/status-badge"
@@ -44,72 +44,69 @@ function App() {
   const { isUnlocked } = useCloudflareVault()
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-      <section className="flex min-w-0 flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-medium">Upster pills</h1>
-            <p className="text-sm text-muted-foreground">
-              Publish mounted mini apps through per-pill Cloudflare tunnels.
-            </p>
-          </div>
+    <section className="flex min-w-0 flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-medium">Pills</h1>
+          <p className="text-sm text-muted-foreground">
+            Publish mounted mini apps through per-pill Cloudflare tunnels.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
           <Badge variant={isUnlocked ? "default" : "outline"}>
             Cloudflare {isUnlocked ? "unlocked" : "locked"}
           </Badge>
+          <CreatePillDialog />
         </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Runs</CardTitle>
-            <CardDescription>
-              Start, stop, inspect ports, and jump into each active tunnel.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {pills.length ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Pill</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Hostname</TableHead>
-                    <TableHead>Ports</TableHead>
-                    <TableHead>Expiry</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pills.map((pill) => (
-                    <PillTableRow key={pill.id} pill={pill} />
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <PlusCircleIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>No pills yet</EmptyTitle>
-                  <EmptyDescription>
-                    Add a mounted repo and Upster will manage its local port,
-                    tunnel, logs, and metrics.
-                  </EmptyDescription>
-                </EmptyHeader>
-                <EmptyContent>
-                  Configure Cloudflare first if you want to start tunnels right
-                  away.
-                </EmptyContent>
-              </Empty>
-            )}
-          </CardContent>
-        </Card>
-      </section>
-
-      <aside>
-        <CreatePillForm />
-      </aside>
-    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Runs</CardTitle>
+          <CardDescription>
+            Start, stop, inspect ports, and jump into each active tunnel.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {pills.length ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Pill</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Hostname</TableHead>
+                  <TableHead>Ports</TableHead>
+                  <TableHead>Expiry</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pills.map((pill) => (
+                  <PillTableRow key={pill.id} pill={pill} />
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <PlusCircleIcon />
+                </EmptyMedia>
+                <EmptyTitle>No pills yet</EmptyTitle>
+                <EmptyDescription>
+                  Add a mounted repo and Upster will manage its local port,
+                  tunnel, logs, and metrics.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                Configure Cloudflare first if you want to start tunnels right
+                away.
+              </EmptyContent>
+            </Empty>
+          )}
+        </CardContent>
+      </Card>
+    </section>
   )
 }
 
