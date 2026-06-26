@@ -87,4 +87,38 @@ describe("CloudflareClient", () => {
     expect(tunnel.id).toBe("existing-tunnel-id")
     expect(fetcher).toHaveBeenCalledTimes(3)
   })
+
+  it("updates an existing dns record when it points to another tunnel", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse([
+          {
+            id: "dns-id",
+            name: "sample.example.com",
+            content: "old-tunnel.cfargotunnel.com",
+          },
+        ])
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          id: "dns-id",
+          name: "sample.example.com",
+          content: "new-tunnel.cfargotunnel.com",
+        })
+      )
+
+    const client = new CloudflareClient(config, fetcher)
+    const record = await client.ensureDnsRecord({
+      hostname: "sample.example.com",
+      tunnelId: "new-tunnel",
+    })
+
+    expect(record.content).toBe("new-tunnel.cfargotunnel.com")
+    expect(fetcher).toHaveBeenCalledTimes(2)
+    expect(fetcher).toHaveBeenLastCalledWith(
+      "https://api.cloudflare.com/client/v4/zones/zone/dns_records/dns-id",
+      expect.objectContaining({ method: "PUT" })
+    )
+  })
 })

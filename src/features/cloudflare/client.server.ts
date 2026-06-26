@@ -139,7 +139,11 @@ export class CloudflareClient {
 
     if (existing) {
       if (existing.content !== content) {
-        throw new Error("DNS record already exists with a different target.")
+        return this.updateDnsRecord({
+          id: existing.id,
+          hostname: input.hostname,
+          content,
+        })
       }
 
       return existing
@@ -181,6 +185,25 @@ export class CloudflareClient {
     )
 
     return records[0] ?? null
+  }
+
+  private async updateDnsRecord(input: {
+    id: string
+    hostname: string
+    content: string
+  }) {
+    return this.request<DnsRecordResult>(
+      `/zones/${this.config.zoneId}/dns_records/${input.id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify({
+          type: "CNAME",
+          name: input.hostname,
+          content: input.content,
+          proxied: true,
+        }),
+      }
+    )
   }
 
   private async request<T>(path: string, init: RequestInit) {
