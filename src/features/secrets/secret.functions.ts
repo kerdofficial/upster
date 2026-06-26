@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 
-import { getSecretVault, saveSecretVault } from "@/db/repositories.server"
+import {
+  deleteSecretVault,
+  getSecretVault,
+  saveSecretVault,
+} from "@/db/repositories.server"
 import { CloudflareClient } from "@/features/cloudflare/client.server"
 
 const encryptedVaultSchema = z.object({
@@ -36,3 +40,9 @@ export const validateCloudflareConfigFn = createServerFn({ method: "POST" })
     await new CloudflareClient(data).validateToken()
     return { ok: true }
   })
+
+export const deleteCloudflareVaultFn = createServerFn({
+  method: "POST",
+}).handler(async () => {
+  await deleteSecretVault("cloudflare")
+})

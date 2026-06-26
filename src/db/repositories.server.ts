@@ -371,6 +371,11 @@ export async function getSecretVault(name: string) {
   return row ?? null
 }
 
+export async function deleteSecretVault(name: string) {
+  await ensureDatabase()
+  await db.delete(secretVaults).where(eq(secretVaults.id, name))
+}
+
 export async function appendEvent(input: {
   type: string
   pillId?: string
