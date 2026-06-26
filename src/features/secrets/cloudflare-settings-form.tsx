@@ -34,6 +34,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import type { CloudflareConfig } from "@/features/pills/types"
+import { CloudflareSetupGuide } from "@/features/secrets/cloudflare-setup-guide"
 import { useCloudflareVault } from "@/features/secrets/cloudflare-vault-provider"
 import type { getCloudflareVaultFn } from "@/features/secrets/secret.functions"
 import {
@@ -231,61 +232,64 @@ function VaultSetup() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Save vault</CardTitle>
-        <CardDescription>
-          The API token is validated, encrypted in the browser, then stored as
-          ciphertext.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="flex flex-col gap-4" onSubmit={handleSave}>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="accountId">Account ID</FieldLabel>
-              <Input id="accountId" name="accountId" required />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="zoneId">Zone ID</FieldLabel>
-              <Input id="zoneId" name="zoneId" required />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="rootDomain">Root domain</FieldLabel>
-              <Input
-                id="rootDomain"
-                name="rootDomain"
-                placeholder="example.com"
-                required
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="apiToken">API token</FieldLabel>
-              <Input id="apiToken" name="apiToken" type="password" required />
-              <FieldDescription>
-                Needs tunnel and DNS permissions for the selected zone.
-              </FieldDescription>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="passphrase">Vault passphrase</FieldLabel>
-              <Input
-                id="passphrase"
-                name="passphrase"
-                type="password"
-                minLength={12}
-                required
-              />
-              <FieldDescription>
-                Use at least 12 characters. This decrypts the vault in your
-                browser and is never sent to the server.
-              </FieldDescription>
-            </Field>
-          </FieldGroup>
-          <Button type="submit" disabled={pending}>
-            {pending ? "Saving..." : "Validate and save vault"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <>
+      <CloudflareSetupGuide />
+      <Card>
+        <CardHeader>
+          <CardTitle>Save vault</CardTitle>
+          <CardDescription>
+            The API token is validated, encrypted in the browser, then stored as
+            ciphertext.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="flex flex-col gap-4" onSubmit={handleSave}>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="accountId">Account ID</FieldLabel>
+                <Input id="accountId" name="accountId" required />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="zoneId">Zone ID</FieldLabel>
+                <Input id="zoneId" name="zoneId" required />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="rootDomain">Root domain</FieldLabel>
+                <Input
+                  id="rootDomain"
+                  name="rootDomain"
+                  placeholder="example.com"
+                  required
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="apiToken">API token</FieldLabel>
+                <Input id="apiToken" name="apiToken" type="password" required />
+                <FieldDescription>
+                  Needs tunnel and DNS permissions for the selected zone.
+                </FieldDescription>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="passphrase">Vault passphrase</FieldLabel>
+                <Input
+                  id="passphrase"
+                  name="passphrase"
+                  type="password"
+                  minLength={12}
+                  required
+                />
+                <FieldDescription>
+                  Use at least 12 characters. This decrypts the vault in your
+                  browser and is never sent to the server.
+                </FieldDescription>
+              </Field>
+            </FieldGroup>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Saving..." : "Validate and save vault"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </>
   )
 }
