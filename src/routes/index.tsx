@@ -2,7 +2,6 @@ import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -32,7 +31,7 @@ import { PillActions } from "@/features/pills/components/pill-actions"
 import { StatusBadge } from "@/features/pills/components/status-badge"
 import { listPillsFn } from "@/features/pills/pill.functions"
 import type { PillListItem } from "@/features/pills/types"
-import { useCloudflareVault } from "@/features/secrets/cloudflare-vault-provider"
+import { CloudflareLockButton } from "@/features/secrets/cloudflare-lock-button"
 
 export const Route = createFileRoute("/")({
   loader: () => listPillsFn(),
@@ -41,7 +40,6 @@ export const Route = createFileRoute("/")({
 
 function App() {
   const pills = Route.useLoaderData()
-  const { isUnlocked } = useCloudflareVault()
 
   return (
     <section className="flex min-w-0 flex-col gap-4">
@@ -53,9 +51,7 @@ function App() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant={isUnlocked ? "default" : "outline"}>
-            Cloudflare {isUnlocked ? "unlocked" : "locked"}
-          </Badge>
+          <CloudflareLockButton />
           <CreatePillDialog />
         </div>
       </div>

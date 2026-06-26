@@ -29,7 +29,7 @@ import {
   startPillFn,
   stopPillFn,
 } from "@/features/pills/pill.functions"
-import type { PillListItem } from "@/features/pills/types"
+import type { CloudflareConfig, PillListItem } from "@/features/pills/types"
 
 function getErrorMessage(err: unknown, fallback: string) {
   return err instanceof Error ? err.message : fallback
@@ -43,13 +43,33 @@ export function PillActions({
   expiresAt?: string | null
 }) {
   const router = useRouter()
-  const { config, isUnlocked } = useCloudflareVault()
+  const { config, requestUnlock } = useCloudflareVault()
   const startPill = useServerFn(startPillFn)
   const stopPill = useServerFn(stopPillFn)
   const deletePill = useServerFn(deletePillFn)
   const [pending, setPending] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const isRunning = Boolean(pill.activeRun)
+
+  async function runStart(cloudflareConfig: CloudflareConfig) {
+    setPending(true)
+    try {
+      await startPill({
+        data: {
+          pillId: pill.id,
+          commandName: pill.defaultEnv,
+          expiresAt: expiresAt ?? undefined,
+          rotatePorts: false,
+          cloudflareConfig,
+        },
+      })
+      await router.invalidate()
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to start pill."))
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
     <div className="flex flex-wrap justify-end gap-2">
@@ -79,31 +99,15 @@ export function PillActions({
         </Button>
       ) : (
         <Button
-          onClick={async () => {
-            if (!config) {
-              toast.error("Unlock Cloudflare settings before starting a pill.")
+          onClick={() => {
+            if (config) {
+              void runStart(config)
               return
             }
 
-            setPending(true)
-            try {
-              await startPill({
-                data: {
-                  pillId: pill.id,
-                  commandName: pill.defaultEnv,
-                  expiresAt: expiresAt ?? undefined,
-                  rotatePorts: false,
-                  cloudflareConfig: config,
-                },
-              })
-              await router.invalidate()
-            } catch (err) {
-              toast.error(getErrorMessage(err, "Failed to start pill."))
-            } finally {
-              setPending(false)
-            }
+            requestUnlock({ onUnlocked: (cfg) => void runStart(cfg) })
           }}
-          disabled={pending || !isUnlocked}
+          disabled={pending}
         >
           <RotateCwIcon data-icon="inline-start" />
           Start

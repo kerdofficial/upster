@@ -22,6 +22,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Badge } from "@/components/ui/badge"
+import { CloudflareLockButton } from "@/features/secrets/cloudflare-lock-button"
 
 const navItems = [
   { to: "/", label: "Pills", icon: FolderKanbanIcon },
@@ -76,7 +77,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <div className="flex justify-center items-center gap-2 px-2 py-1 text-xs text-muted-foreground text-center">
+          <div className="flex items-center justify-center gap-2 px-2 py-1 text-center text-xs text-muted-foreground">
             <Badge variant="outline" className="w-fit">
               Alpha
             </Badge>
@@ -87,6 +88,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <header className="flex h-12 items-center gap-2 border-b px-4">
           <SidebarTrigger />
+          <div className="ml-auto">
+            <CloudflareLockButton />
+          </div>
         </header>
         <main className="min-h-0 flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
