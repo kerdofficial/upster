@@ -22,7 +22,10 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Badge } from "@/components/ui/badge"
+import { LogoutButton } from "@/features/auth/logout-button"
 import { CloudflareLockButton } from "@/features/secrets/cloudflare-lock-button"
+
+const UNAUTHENTICATED_PATHS = ["/login", "/setup"]
 
 const navItems = [
   { to: "/", label: "Pills", icon: FolderKanbanIcon },
@@ -34,6 +37,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
+
+  if (UNAUTHENTICATED_PATHS.includes(pathname)) {
+    return <>{children}</>
+  }
 
   return (
     <SidebarProvider>
@@ -88,8 +95,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <header className="flex h-12 items-center gap-2 border-b px-4">
           <SidebarTrigger />
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <CloudflareLockButton />
+            <LogoutButton />
           </div>
         </header>
         <main className="min-h-0 flex-1 p-4 md:p-6">{children}</main>

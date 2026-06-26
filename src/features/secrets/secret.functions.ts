@@ -6,6 +6,7 @@ import {
   getSecretVault,
   saveSecretVault,
 } from "@/db/repositories.server"
+import { authMiddleware } from "@/features/auth/auth-middleware.server"
 import { CloudflareClient } from "@/features/cloudflare/client.server"
 
 const encryptedVaultSchema = z.object({
@@ -24,17 +25,19 @@ const cloudflareConfigSchema = z.object({
   apiToken: z.string().min(1),
 })
 
-export const getCloudflareVaultFn = createServerFn({ method: "GET" }).handler(
-  () => getSecretVault("cloudflare")
-)
+export const getCloudflareVaultFn = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(() => getSecretVault("cloudflare"))
 
 export const saveCloudflareVaultFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((data: unknown) => encryptedVaultSchema.parse(data))
   .handler(async ({ data }) => {
     await saveSecretVault(data)
   })
 
 export const validateCloudflareConfigFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((data: unknown) => cloudflareConfigSchema.parse(data))
   .handler(async ({ data }) => {
     await new CloudflareClient(data).validateToken()
@@ -43,6 +46,8 @@ export const validateCloudflareConfigFn = createServerFn({ method: "POST" })
 
 export const deleteCloudflareVaultFn = createServerFn({
   method: "POST",
-}).handler(async () => {
-  await deleteSecretVault("cloudflare")
 })
+  .middleware([authMiddleware])
+  .handler(async () => {
+    await deleteSecretVault("cloudflare")
+  })
