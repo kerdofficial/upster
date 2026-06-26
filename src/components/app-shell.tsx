@@ -9,6 +9,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -20,6 +21,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { Badge } from "@/components/ui/badge"
 
 const navItems = [
   { to: "/", label: "Pills", icon: FolderKanbanIcon },
@@ -73,13 +75,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
+        <SidebarFooter>
+          <div className="flex justify-center items-center gap-2 px-2 py-1 text-xs text-muted-foreground text-center">
+            <Badge variant="outline" className="w-fit">
+              Alpha
+            </Badge>
+            <span>v0.0.4</span>
+          </div>
+        </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <header className="flex h-12 items-center gap-2 border-b px-4">
           <SidebarTrigger />
-          <div className="text-xs text-muted-foreground">
-            Local dashboard on port 3377
-          </div>
         </header>
         <main className="min-h-0 flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
