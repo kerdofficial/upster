@@ -1,8 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router"
 import {
-  ActivityIcon,
   CloudIcon,
   FolderKanbanIcon,
+  RocketIcon,
   SettingsIcon,
 } from "lucide-react"
 
@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <SidebarHeader>
           <div className="flex items-center gap-2 px-2 py-1">
             <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <ActivityIcon />
+              <RocketIcon className="size-4" />
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-medium">Upster</div>
