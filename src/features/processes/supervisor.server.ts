@@ -17,12 +17,12 @@ import { getUpsterConfig } from "@/config/env.server"
 import { createCloudflareClient } from "@/features/cloudflare/client.server"
 import type {
   CloudflareTunnel,
-  PillCommand,
   PillRun,
   RunLog,
   StartPillInput,
 } from "@/features/pills/types"
 import { findAvailablePort } from "@/features/pills/ports.server"
+import { buildProcessEnv } from "@/features/processes/process-env"
 import { emitRunLog, nextLogSequence } from "@/features/terminal/log-bus.server"
 
 type ManagedRun = {
@@ -48,23 +48,6 @@ async function logRun(runId: string, stream: RunLog["stream"], chunk: string) {
     chunk,
   })
   emitRunLog(log)
-}
-
-function renderEnvValue(value: string, port: number) {
-  return value === "$UPSTER_PORT" ? String(port) : value
-}
-
-function buildProcessEnv(command: PillCommand, port: number) {
-  return {
-    ...process.env,
-    PORT: String(port),
-    ...Object.fromEntries(
-      Object.entries(command.env).map(([key, value]) => [
-        key,
-        renderEnvValue(value, port),
-      ])
-    ),
-  }
 }
 
 async function preparePorts(pillId: string, rotatePorts: boolean) {
