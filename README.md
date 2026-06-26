@@ -42,3 +42,11 @@ docker compose up --build
 ```bash
 bun run validate
 ```
+
+## Disclaimer
+
+Upster is an independent, unofficial project. It is not affiliated with,
+endorsed by, or sponsored by Cloudflare, Inc. "Cloudflare" and "Cloudflare
+Tunnel" are trademarks of Cloudflare, Inc., used here only to describe
+interoperability. You are responsible for your own Cloudflare account, API
+token, and any resources Upster creates on your behalf.
