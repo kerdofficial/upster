@@ -11,10 +11,18 @@ export type UpsterConfig = {
   databaseUrl: string
   hostWorkspaceRoot: string | null
   workspaceRoots: Array<string>
+  allowedCommands: Array<string>
   appPortRange: PortRange
   metricsPortRange: PortRange
   publicOrigin: string
   cloudflaredBin: string
+}
+
+function parseAllowedCommands(value: string | undefined) {
+  return (value ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
 }
 
 function parsePortRange(value: string | undefined, fallback: PortRange) {
@@ -59,6 +67,7 @@ export function getUpsterConfig(): UpsterConfig {
       process.env.DATABASE_URL ?? `file:${resolve(dataDir, "upster.db")}`,
     hostWorkspaceRoot: hostWorkspaceRoot ? resolve(hostWorkspaceRoot) : null,
     workspaceRoots: parseWorkspaceRoots(process.env.UPSTER_WORKSPACE_ROOTS),
+    allowedCommands: parseAllowedCommands(process.env.UPSTER_ALLOWED_COMMANDS),
     appPortRange: parsePortRange(process.env.UPSTER_APP_PORT_RANGE, {
       min: 41000,
       max: 49151,

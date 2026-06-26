@@ -9,6 +9,7 @@ import {
 } from "@/db/repositories.server"
 import type { CreatePillInput, UpdatePillInput } from "@/features/pills/types"
 import {
+  assertAllowedCommand,
   assertValidHostnameLabel,
   ensureWorkspacePath,
   parseCommand,
@@ -33,6 +34,8 @@ export async function createPill(input: CreatePillInput) {
     config.hostWorkspaceRoot
   )
   const argv = parseCommand(input.command)
+
+  assertAllowedCommand(argv, config.allowedCommands)
 
   return createPillRecord({
     ...input,
@@ -76,6 +79,7 @@ export function getRuntimeSettings() {
   return {
     workspaceRoots: config.workspaceRoots,
     hostWorkspaceRoot: config.hostWorkspaceRoot,
+    allowedCommands: config.allowedCommands,
     appPortRange: config.appPortRange,
     metricsPortRange: config.metricsPortRange,
     publicOrigin: config.publicOrigin,

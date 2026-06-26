@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs"
-import { isAbsolute, relative, resolve } from "node:path"
+import { basename, isAbsolute, relative, resolve } from "node:path"
 
 export function slugify(value: string) {
   return value
@@ -70,6 +70,27 @@ export function resolveWorkspacePath(
   }
 
   return resolvedPath
+}
+
+export function assertAllowedCommand(
+  argv: Array<string>,
+  allowedCommands: Array<string>
+) {
+  if (!allowedCommands.length) {
+    return
+  }
+
+  const executable = argv[0]
+  const name = basename(executable)
+
+  if (
+    !allowedCommands.includes(executable) &&
+    !allowedCommands.includes(name)
+  ) {
+    throw new Error(
+      `Command "${name}" is not in the configured UPSTER_ALLOWED_COMMANDS list.`
+    )
+  }
 }
 
 export function parseCommand(command: string) {
