@@ -43,6 +43,11 @@ const pillIdSchema = z.object({
   pillId: z.string().min(1),
 })
 
+const deletePillSchema = z.object({
+  pillId: z.string().min(1),
+  cloudflareConfig: cloudflareConfigSchema.optional(),
+})
+
 const startPillSchema = z.object({
   pillId: z.string().min(1),
   commandName: z.string().min(1),
@@ -81,7 +86,7 @@ export const updatePillFn = createServerFn({ method: "POST" })
 
 export const deletePillFn = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator((data: unknown) => pillIdSchema.parse(data))
+  .validator((data: unknown) => deletePillSchema.parse(data))
   .handler(({ data }) => deletePill(data))
 
 export const startPillFn = createServerFn({ method: "POST" })

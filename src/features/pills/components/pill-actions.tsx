@@ -130,8 +130,8 @@ export function PillActions({
             <AlertDialogTitle>Delete {pill.name}?</AlertDialogTitle>
             <AlertDialogDescription>
               This removes the pill, command profile, ports, runs, and local log
-              records. Existing Cloudflare tunnel and DNS resources are left in
-              Cloudflare.
+              records. When the Cloudflare vault is unlocked, its tunnel and DNS
+              record are removed too; otherwise they are left in Cloudflare.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -142,7 +142,12 @@ export function PillActions({
               onClick={async () => {
                 setPending(true)
                 try {
-                  await deletePill({ data: { pillId: pill.id } })
+                  await deletePill({
+                    data: {
+                      pillId: pill.id,
+                      cloudflareConfig: config ?? undefined,
+                    },
+                  })
                   toast.success("Pill deleted.")
                   setDeleteOpen(false)
                   await router.invalidate()

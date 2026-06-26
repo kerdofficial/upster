@@ -7,7 +7,12 @@ import {
   listPills,
   updatePillRecord,
 } from "@/db/repositories.server"
-import type { CreatePillInput, UpdatePillInput } from "@/features/pills/types"
+import { createCloudflareClient } from "@/features/cloudflare/client.server"
+import type {
+  CloudflareConfig,
+  CreatePillInput,
+  UpdatePillInput,
+} from "@/features/pills/types"
 import {
   assertAllowedCommand,
   assertValidHostnameLabel,
@@ -55,14 +60,50 @@ export async function updatePill(input: UpdatePillInput) {
   })
 }
 
-export async function deletePill(input: { pillId: string }) {
+export async function deletePill(input: {
+  pillId: string
+  cloudflareConfig?: CloudflareConfig
+}) {
   const activeRun = await getActiveRun(input.pillId)
 
   if (activeRun) {
     throw new Error("Stop the pill before deleting it.")
   }
 
+  if (input.cloudflareConfig) {
+    await cleanupCloudflareResources(input.pillId, input.cloudflareConfig)
+  }
+
   await deletePillRecord(input.pillId)
+}
+
+async function cleanupCloudflareResources(
+  pillId: string,
+  config: CloudflareConfig
+) {
+  const pill = await getPillDetail(pillId)
+
+  if (!pill.tunnel) {
+    return
+  }
+
+  const client = createCloudflareClient(config)
+
+  if (pill.tunnel.dnsRecordId) {
+    try {
+      await client.deleteDnsRecord(pill.tunnel.dnsRecordId)
+    } catch {
+      // Best effort: the record may already be gone.
+    }
+  }
+
+  if (pill.tunnel.tunnelId) {
+    try {
+      await client.deleteTunnel(pill.tunnel.tunnelId)
+    } catch {
+      // Best effort: the tunnel may already be gone or still draining.
+    }
+  }
 }
 
 export async function getPills() {
