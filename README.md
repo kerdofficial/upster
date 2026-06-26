@@ -12,6 +12,8 @@ Do not use Upster for untrusted repositories, public multi-user access, or sensi
 
 ## Security
 
+See [SECURITY.md](SECURITY.md) for the full security model, operator caveats, and contributor and AI-agent guidance. Highlights:
+
 - The dashboard requires an admin passphrase. On first run, open the app and set it on the setup screen. The passphrase is stored only as an Argon2id verifier and access is gated by a signed, HttpOnly session cookie.
 - The dashboard port is published on `127.0.0.1` by default. Set `UPSTER_BIND_HOST=0.0.0.0` to expose it on the local network, and only do so behind TLS once you have set an admin passphrase.
 - Cloudflare credentials are stored only as encrypted vault ciphertext and are decrypted in the browser, never persisted in plaintext.
