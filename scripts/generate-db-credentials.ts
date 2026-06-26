@@ -2,14 +2,18 @@
 //
 // Generates a libSQL (sqld) auth keypair and a full-access token.
 //
-// Run once, then copy the two printed values into your .env:
+// Run once. By default the credentials are written to a 0600 file so the token
+// does not leak through terminal capture or CI logs. Pass --stdout to print
+// them instead.
 //
 //   bun run scripts/generate-db-credentials.ts
+//   bun run scripts/generate-db-credentials.ts --stdout
 //
 // SQLD_AUTH_JWT_KEY goes to the db service (it verifies tokens with it).
 // DATABASE_AUTH_TOKEN goes to the upster service (it presents it to the db).
 
 import { generateKeyPairSync, sign } from "node:crypto"
+import { writeFileSync } from "node:fs"
 
 function base64url(input: Buffer | string) {
   return Buffer.from(input).toString("base64url")
@@ -29,11 +33,19 @@ const signature = sign(null, Buffer.from(signingInput), privateKey).toString(
 )
 const token = `${signingInput}.${signature}`
 
-process.stdout.write(
-  [
-    "# Add these to your .env (keep DATABASE_AUTH_TOKEN secret):",
-    `SQLD_AUTH_JWT_KEY=${jwtKey}`,
-    `DATABASE_AUTH_TOKEN=${token}`,
-    "",
-  ].join("\n")
-)
+const output = [
+  "# Add these to your .env (keep DATABASE_AUTH_TOKEN secret):",
+  `SQLD_AUTH_JWT_KEY=${jwtKey}`,
+  `DATABASE_AUTH_TOKEN=${token}`,
+  "",
+].join("\n")
+
+if (process.argv.includes("--stdout")) {
+  process.stdout.write(output)
+} else {
+  const outFile = ".env.libsql"
+  writeFileSync(outFile, output, { mode: 0o600 })
+  process.stdout.write(
+    `Wrote libSQL credentials to ${outFile} (chmod 600). Copy the two lines into your .env, then delete the file.\n`
+  )
+}
