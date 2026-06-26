@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "@tanstack/react-router"
 import { useServerFn } from "@tanstack/react-start"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -24,7 +25,6 @@ import { createPillFn } from "@/features/pills/pill.functions"
 export function CreatePillForm() {
   const router = useRouter()
   const createPill = useServerFn(createPillFn)
-  const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
   return (
@@ -41,7 +41,6 @@ export function CreatePillForm() {
           onSubmit={async (event) => {
             event.preventDefault()
             setPending(true)
-            setError(null)
 
             const form = new FormData(event.currentTarget)
 
@@ -59,9 +58,10 @@ export function CreatePillForm() {
                 },
               })
               event.currentTarget.reset()
+              toast.success("Pill added.")
               await router.invalidate()
             } catch (err) {
-              setError(
+              toast.error(
                 err instanceof Error ? err.message : "Failed to add pill."
               )
             } finally {
@@ -124,7 +124,6 @@ export function CreatePillForm() {
               />
             </Field>
           </FieldGroup>
-          {error && <p className="text-xs text-destructive">{error}</p>}
           <Button type="submit" disabled={pending}>
             {pending ? "Adding..." : "Add pill"}
           </Button>

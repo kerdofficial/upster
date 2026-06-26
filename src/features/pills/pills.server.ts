@@ -2,6 +2,7 @@ import { getUpsterConfig } from "@/config/env.server"
 import {
   createPillRecord,
   deletePillRecord,
+  getActiveRun,
   getPillDetail,
   listPills,
   updatePillRecord,
@@ -52,6 +53,12 @@ export async function updatePill(input: UpdatePillInput) {
 }
 
 export async function deletePill(input: { pillId: string }) {
+  const activeRun = await getActiveRun(input.pillId)
+
+  if (activeRun) {
+    throw new Error("Stop the pill before deleting it.")
+  }
+
   await deletePillRecord(input.pillId)
 }
 

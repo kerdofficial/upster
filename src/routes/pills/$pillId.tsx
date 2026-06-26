@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { ArrowLeftIcon } from "lucide-react"
 
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { MetricsPanel } from "@/features/metrics/metrics-panel"
+import { ExpiryPicker } from "@/features/pills/components/expiry-picker"
 import { PillActions } from "@/features/pills/components/pill-actions"
 import { StatusBadge } from "@/features/pills/components/status-badge"
 import { getPillStatusFn } from "@/features/pills/pill.functions"
@@ -24,6 +26,10 @@ export const Route = createFileRoute("/pills/$pillId")({
 function PillDetailPage() {
   const pill = Route.useLoaderData()
   const runId = pill.activeRun?.id ?? null
+  const [expiresAt, setExpiresAt] = useState<string | null>(
+    pill.activeRun?.expiresAt ?? null
+  )
+  const isRunning = Boolean(pill.activeRun)
 
   return (
     <div className="flex flex-col gap-6">
@@ -40,8 +46,13 @@ function PillDetailPage() {
             <p className="text-sm text-muted-foreground">{pill.repoPath}</p>
           </div>
         </div>
-        <div className="w-full max-w-md">
-          <PillActions pill={pill} />
+        <div className="flex w-full max-w-md flex-col items-start gap-2 sm:items-end">
+          <ExpiryPicker
+            value={expiresAt}
+            onChange={setExpiresAt}
+            disabled={isRunning}
+          />
+          <PillActions pill={pill} expiresAt={expiresAt} />
         </div>
       </div>
 

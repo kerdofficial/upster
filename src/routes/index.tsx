@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { PlusCircleIcon } from "lucide-react"
 
@@ -26,9 +27,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { CreatePillForm } from "@/features/pills/components/create-pill-form"
+import { ExpiryPicker } from "@/features/pills/components/expiry-picker"
 import { PillActions } from "@/features/pills/components/pill-actions"
 import { StatusBadge } from "@/features/pills/components/status-badge"
 import { listPillsFn } from "@/features/pills/pill.functions"
+import type { PillListItem } from "@/features/pills/types"
 import { useCloudflareVault } from "@/features/secrets/cloudflare-vault-provider"
 
 export const Route = createFileRoute("/")({
@@ -71,38 +74,13 @@ function App() {
                     <TableHead>Status</TableHead>
                     <TableHead>Hostname</TableHead>
                     <TableHead>Ports</TableHead>
+                    <TableHead>Expiry</TableHead>
                     <TableHead>Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {pills.map((pill) => (
-                    <TableRow key={pill.id}>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <Link
-                            to="/pills/$pillId"
-                            params={{ pillId: pill.id }}
-                            className="font-medium hover:underline"
-                          >
-                            {pill.name}
-                          </Link>
-                          <span className="text-xs text-muted-foreground">
-                            {pill.repoPath}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={pill.status} />
-                      </TableCell>
-                      <TableCell>{pill.hostname ?? "-"}</TableCell>
-                      <TableCell>
-                        app {pill.appPort ?? "-"} / metrics{" "}
-                        {pill.metricsPort ?? "-"}
-                      </TableCell>
-                      <TableCell>
-                        <PillActions pill={pill} />
-                      </TableCell>
-                    </TableRow>
+                    <PillTableRow key={pill.id} pill={pill} />
                   ))}
                 </TableBody>
               </Table>
@@ -131,6 +109,73 @@ function App() {
       <aside>
         <CreatePillForm />
       </aside>
+    </div>
+  )
+}
+
+function PillTableRow({ pill }: { pill: PillListItem }) {
+  const [expiresAt, setExpiresAt] = useState<string | null>(
+    pill.activeRun?.expiresAt ?? null
+  )
+  const isRunning = Boolean(pill.activeRun)
+
+  return (
+    <TableRow>
+      <TableCell>
+        <div className="flex flex-col">
+          <Link
+            to="/pills/$pillId"
+            params={{ pillId: pill.id }}
+            className="font-medium hover:underline"
+          >
+            {pill.name}
+          </Link>
+          <span className="text-xs text-muted-foreground">{pill.repoPath}</span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <StatusBadge status={pill.status} />
+      </TableCell>
+      <TableCell>{pill.hostname ?? "-"}</TableCell>
+      <TableCell>
+        <PortSummary appPort={pill.appPort} metricsPort={pill.metricsPort} />
+      </TableCell>
+      <TableCell>
+        <ExpiryPicker
+          value={expiresAt}
+          onChange={setExpiresAt}
+          disabled={isRunning}
+        />
+      </TableCell>
+      <TableCell>
+        <PillActions pill={pill} expiresAt={expiresAt} />
+      </TableCell>
+    </TableRow>
+  )
+}
+
+function PortSummary({
+  appPort,
+  metricsPort,
+}: {
+  appPort: number | null
+  metricsPort: number | null
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <PortValue label="App" value={appPort} />
+      <PortValue label="Metrics" value={metricsPort} />
+    </div>
+  )
+}
+
+function PortValue({ label, value }: { label: string; value: number | null }) {
+  return (
+    <div className="flex w-32 items-center justify-between gap-3 rounded-md border px-2 py-1">
+      <span className="text-[0.65rem] font-medium tracking-wide text-muted-foreground uppercase">
+        {label}
+      </span>
+      <span className="font-mono text-xs">{value ?? "-"}</span>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 
 import {
   Card,
@@ -18,6 +19,7 @@ type MetricsResponse =
 
 export function MetricsPanel({ runId }: { runId: string | null }) {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null)
+  const lastErrorRef = useRef<string | null>(null)
 
   useEffect(() => {
     if (!runId) {
@@ -28,11 +30,26 @@ export function MetricsPanel({ runId }: { runId: string | null }) {
     let cancelled = false
 
     async function loadMetrics() {
-      const response = await fetch(`/api/runs/${runId}/metrics`)
-      const data = (await response.json()) as MetricsResponse
+      let data: MetricsResponse
+
+      try {
+        const response = await fetch(`/api/runs/${runId}/metrics`)
+        data = (await response.json()) as MetricsResponse
+      } catch {
+        data = { error: "Failed to load metrics." }
+      }
 
       if (!cancelled) {
         setMetrics(data)
+
+        if ("error" in data && data.error !== lastErrorRef.current) {
+          lastErrorRef.current = data.error
+          toast.error(data.error)
+        }
+
+        if (!("error" in data)) {
+          lastErrorRef.current = null
+        }
       }
     }
 
@@ -59,7 +76,9 @@ export function MetricsPanel({ runId }: { runId: string | null }) {
         )}
         {runId && !metrics && <Skeleton className="h-28 w-full" />}
         {metrics && "error" in metrics && (
-          <p className="text-xs text-destructive">{metrics.error}</p>
+          <p className="text-xs text-muted-foreground">
+            Metrics are not available for this run.
+          </p>
         )}
         {metrics && !("error" in metrics) && (
           <>

@@ -2,6 +2,7 @@ import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 
+import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AppShell } from "@/components/app-shell"
 import { CloudflareVaultProvider } from "@/features/secrets/cloudflare-vault-provider"
@@ -49,6 +50,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <AppShell>{children}</AppShell>
           </CloudflareVaultProvider>
         </TooltipProvider>
+        <Toaster richColors />
         <TanStackDevtools
           config={{
             position: "bottom-right",

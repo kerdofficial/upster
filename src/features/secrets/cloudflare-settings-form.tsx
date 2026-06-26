@@ -2,9 +2,8 @@
 
 import { useState } from "react"
 import { useServerFn } from "@tanstack/react-start"
-import { LockIcon, UnlockIcon } from "lucide-react"
+import { toast } from "sonner"
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -54,16 +53,12 @@ export function CloudflareSettingsForm({ vault }: { vault: StoredVault }) {
   const saveVault = useServerFn(saveCloudflareVaultFn)
   const validateConfig = useServerFn(validateCloudflareConfigFn)
   const { config, isUnlocked, unlock, lock } = useCloudflareVault()
-  const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const encryptedVault = toEncryptedVault(vault)
 
   async function handleSave(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setPending(true)
-    setError(null)
-    setMessage(null)
 
     const form = new FormData(event.currentTarget)
     const passphrase = String(form.get("passphrase") ?? "")
@@ -85,11 +80,11 @@ export function CloudflareSettingsForm({ vault }: { vault: StoredVault }) {
       )
       await saveVault({ data: encrypted })
       unlock(cloudflareConfig)
-      setMessage(
+      toast.success(
         "Cloudflare vault saved and unlocked for this browser session."
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save vault.")
+      toast.error(err instanceof Error ? err.message : "Failed to save vault.")
     } finally {
       setPending(false)
     }
@@ -99,13 +94,11 @@ export function CloudflareSettingsForm({ vault }: { vault: StoredVault }) {
     event.preventDefault()
 
     if (!encryptedVault) {
-      setError("No Cloudflare vault has been saved yet.")
+      toast.error("No Cloudflare vault has been saved yet.")
       return
     }
 
     setPending(true)
-    setError(null)
-    setMessage(null)
 
     const form = new FormData(event.currentTarget)
     const passphrase = String(form.get("unlockPassphrase") ?? "")
@@ -117,9 +110,9 @@ export function CloudflareSettingsForm({ vault }: { vault: StoredVault }) {
       )
       await validateConfig({ data: cloudflareConfig })
       unlock(cloudflareConfig)
-      setMessage("Cloudflare vault unlocked for this browser session.")
+      toast.success("Cloudflare vault unlocked for this browser session.")
     } catch {
-      setError("Could not unlock the vault with that passphrase.")
+      toast.error("Could not unlock the vault with that passphrase.")
     } finally {
       setPending(false)
     }
@@ -134,21 +127,6 @@ export function CloudflareSettingsForm({ vault }: { vault: StoredVault }) {
             Save an encrypted local vault and unlock it only in browser memory.
           </p>
         </div>
-
-        {message && (
-          <Alert>
-            <UnlockIcon />
-            <AlertTitle>Ready</AlertTitle>
-            <AlertDescription>{message}</AlertDescription>
-          </Alert>
-        )}
-        {error && (
-          <Alert variant="destructive">
-            <LockIcon />
-            <AlertTitle>Cloudflare error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
 
         <Card>
           <CardHeader>
