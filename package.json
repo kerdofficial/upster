@@ -2,6 +2,7 @@
   "name": "upster",
   "private": true,
   "type": "module",
+  "version": "0.0.6",
   "scripts": {
     "dev": "vite dev --port 3377",
     "build": "vite build",

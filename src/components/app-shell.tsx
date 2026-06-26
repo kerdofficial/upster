@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Badge variant="outline" className="w-fit">
               Alpha
             </Badge>
-            <span>v0.0.4</span>
+            <span>v{__APP_VERSION__}</span>
           </div>
         </SidebarFooter>
       </Sidebar>
