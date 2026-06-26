@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 
-import { authMiddleware } from "@/features/auth/auth-middleware.server"
+import { authMiddleware } from "@/features/auth/auth-middleware"
 import {
   createPill,
   deletePill,

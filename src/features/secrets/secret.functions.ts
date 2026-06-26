@@ -6,7 +6,7 @@ import {
   getSecretVault,
   saveSecretVault,
 } from "@/db/repositories.server"
-import { authMiddleware } from "@/features/auth/auth-middleware.server"
+import { authMiddleware } from "@/features/auth/auth-middleware"
 import { CloudflareClient } from "@/features/cloudflare/client.server"
 
 const encryptedVaultSchema = z.object({
