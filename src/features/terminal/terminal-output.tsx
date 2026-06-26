@@ -96,14 +96,14 @@ export function TerminalOutput({
 
   if (!runId) {
     return (
-      <pre className="min-h-80 rounded-lg bg-muted p-3 text-xs text-muted-foreground">
-        No active run.
-      </pre>
+      <div className="flex h-full min-h-[20rem] items-center justify-center rounded-lg border border-dashed bg-muted/40 text-xs text-muted-foreground">
+        No active run. Start the pill to stream live output.
+      </div>
     )
   }
 
   return (
-    <div className="relative h-full min-h-[32rem] overflow-hidden rounded-lg bg-zinc-950">
+    <div className="relative h-full min-h-[20rem] overflow-hidden rounded-lg bg-zinc-950">
       <div ref={containerRef} className="absolute inset-0" />
       {!ghosttyReady && (
         <pre className="absolute inset-3 overflow-auto p-3 text-xs whitespace-pre-wrap text-zinc-100">

@@ -3,13 +3,6 @@
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { ParsedMetrics } from "@/features/metrics/parser"
 
@@ -17,7 +10,7 @@ type MetricsResponse =
   | { raw: string; parsed: ParsedMetrics }
   | { error: string }
 
-export function MetricsPanel({ runId }: { runId: string | null }) {
+export function useTunnelMetrics(runId: string | null) {
   const [metrics, setMetrics] = useState<MetricsResponse | null>(null)
   const lastErrorRef = useRef<string | null>(null)
 
@@ -62,55 +55,73 @@ export function MetricsPanel({ runId }: { runId: string | null }) {
     }
   }, [runId])
 
+  return metrics
+}
+
+export function MetricsSummary({
+  metrics,
+}: {
+  metrics: MetricsResponse | null
+}) {
+  const parsed = metrics && !("error" in metrics) ? metrics.parsed : null
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>cloudflared metrics</CardTitle>
-        <CardDescription>
-          Prometheus output from the local metrics server.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {!runId && (
-          <p className="text-xs text-muted-foreground">No active run.</p>
-        )}
-        {runId && !metrics && <Skeleton className="h-28 w-full" />}
-        {metrics && "error" in metrics && (
-          <p className="text-xs text-muted-foreground">
-            Metrics are not available for this run.
-          </p>
-        )}
-        {metrics && !("error" in metrics) && (
-          <>
-            <div className="grid gap-2 md:grid-cols-3">
-              <Metric
-                label="HA connections"
-                value={metrics.parsed.haConnections}
-              />
-              <Metric
-                label="Active streams"
-                value={metrics.parsed.activeStreams}
-              />
-              <Metric
-                label="Total requests"
-                value={metrics.parsed.totalRequests}
-              />
-            </div>
-            <pre className="max-h-80 overflow-auto rounded-lg bg-muted p-3 text-xs">
-              {metrics.raw}
-            </pre>
-          </>
-        )}
-      </CardContent>
-    </Card>
+    <div className="grid gap-3 sm:grid-cols-3">
+      <MetricCard
+        label="HA connections"
+        value={parsed?.haConnections ?? null}
+      />
+      <MetricCard
+        label="Active streams"
+        value={parsed?.activeStreams ?? null}
+      />
+      <MetricCard
+        label="Total requests"
+        value={parsed?.totalRequests ?? null}
+      />
+    </div>
   )
 }
 
-function Metric({ label, value }: { label: string; value: number | null }) {
+function MetricCard({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="rounded-lg border p-3">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-lg font-medium">{value ?? "-"}</div>
+    <div className="flex flex-col gap-1 rounded-xl border bg-card p-4">
+      <span className="text-[0.7rem] font-medium tracking-wide text-muted-foreground uppercase">
+        {label}
+      </span>
+      <span className="font-mono text-3xl font-semibold tabular-nums">
+        {value ?? "-"}
+      </span>
     </div>
+  )
+}
+
+export function MetricsRaw({
+  runId,
+  metrics,
+}: {
+  runId: string | null
+  metrics: MetricsResponse | null
+}) {
+  if (!runId) {
+    return <p className="text-xs text-muted-foreground">No active run.</p>
+  }
+
+  if (!metrics) {
+    return <Skeleton className="h-40 w-full" />
+  }
+
+  if ("error" in metrics) {
+    return (
+      <p className="text-xs text-muted-foreground">
+        Metrics are not available for this run.
+      </p>
+    )
+  }
+
+  return (
+    <pre className="max-h-[28rem] overflow-auto rounded-lg bg-muted p-3 text-xs">
+      {metrics.raw}
+    </pre>
   )
 }
