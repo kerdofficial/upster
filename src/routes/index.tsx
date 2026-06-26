@@ -31,7 +31,6 @@ import { PillActions } from "@/features/pills/components/pill-actions"
 import { StatusBadge } from "@/features/pills/components/status-badge"
 import { listPillsFn } from "@/features/pills/pill.functions"
 import type { PillListItem } from "@/features/pills/types"
-import { CloudflareLockButton } from "@/features/secrets/cloudflare-lock-button"
 
 export const Route = createFileRoute("/")({
   loader: () => listPillsFn(),
@@ -50,10 +49,7 @@ function App() {
             Publish mounted mini apps through per-pill Cloudflare tunnels.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <CloudflareLockButton />
-          <CreatePillDialog />
-        </div>
+        <CreatePillDialog />
       </div>
 
       <Card>
