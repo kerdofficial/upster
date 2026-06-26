@@ -45,6 +45,46 @@ export class CloudflareClient {
     return result
   }
 
+  async findRemoteTunnelByName(name: string) {
+    const params = new URLSearchParams({
+      tunnel_name: name,
+      is_deleted: "false",
+    })
+    const tunnels = await this.request<Array<TunnelResult>>(
+      `/accounts/${this.config.accountId}/cfd_tunnel?${params.toString()}`,
+      {
+        method: "GET",
+      }
+    )
+
+    return tunnels.find((tunnel) => tunnel.name === name) ?? null
+  }
+
+  async getOrCreateRemoteTunnel(name: string) {
+    const existing = await this.findRemoteTunnelByName(name)
+
+    if (existing) {
+      return existing
+    }
+
+    try {
+      return await this.createRemoteTunnel(name)
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes("You already have a tunnel with this name")
+      ) {
+        const tunnel = await this.findRemoteTunnelByName(name)
+
+        if (tunnel) {
+          return tunnel
+        }
+      }
+
+      throw error
+    }
+  }
+
   async updateTunnelConfig(input: {
     tunnelId: string
     hostname: string

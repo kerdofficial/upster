@@ -16,10 +16,25 @@ function jsonResponse(result: unknown) {
   })
 }
 
+function errorResponse(message: string) {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      errors: [{ code: 1000, message }],
+      result: null,
+    }),
+    {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    }
+  )
+}
+
 describe("CloudflareClient", () => {
   it("creates and configures a tunnel through the API", async () => {
     const fetcher = vi
       .fn()
+      .mockResolvedValueOnce(jsonResponse([]))
       .mockResolvedValueOnce(
         jsonResponse({ id: "tunnel-id", name: "upster-example" })
       )
@@ -35,7 +50,7 @@ describe("CloudflareClient", () => {
       .mockResolvedValueOnce(jsonResponse("runtime-token"))
 
     const client = new CloudflareClient(config, fetcher)
-    const tunnel = await client.createRemoteTunnel("upster-example")
+    const tunnel = await client.getOrCreateRemoteTunnel("upster-example")
     await client.updateTunnelConfig({
       tunnelId: tunnel.id,
       hostname: "sample.example.com",
@@ -50,6 +65,26 @@ describe("CloudflareClient", () => {
     expect(tunnel.id).toBe("tunnel-id")
     expect(record.id).toBe("dns-id")
     expect(token).toBe("runtime-token")
-    expect(fetcher).toHaveBeenCalledTimes(5)
+    expect(fetcher).toHaveBeenCalledTimes(6)
+  })
+
+  it("reuses an existing tunnel when Cloudflare reports a duplicate name", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse([]))
+      .mockResolvedValueOnce(
+        errorResponse(
+          "You already have a tunnel with this name. Delete the existing tunnel, or choose a different name for your new tunnel"
+        )
+      )
+      .mockResolvedValueOnce(
+        jsonResponse([{ id: "existing-tunnel-id", name: "upster-example" }])
+      )
+
+    const client = new CloudflareClient(config, fetcher)
+    const tunnel = await client.getOrCreateRemoteTunnel("upster-example")
+
+    expect(tunnel.id).toBe("existing-tunnel-id")
+    expect(fetcher).toHaveBeenCalledTimes(3)
   })
 })

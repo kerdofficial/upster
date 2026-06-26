@@ -127,7 +127,7 @@ async function prepareCloudflareTunnel(input: {
 
   const tunnel = pill.tunnel?.tunnelId
     ? { id: pill.tunnel.tunnelId, name: tunnelName }
-    : await client.createRemoteTunnel(tunnelName)
+    : await client.getOrCreateRemoteTunnel(tunnelName)
 
   await client.updateTunnelConfig({
     tunnelId: tunnel.id,
