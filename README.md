@@ -6,9 +6,22 @@ Upster is a local Dockerized dashboard for publishing short-lived mini apps thro
 
 Upster is in alpha and under active development. Use it at your own risk.
 
-The project is intended for local, single-user development workflows. It is not production-ready yet, and some safety hardening is still planned around process isolation, secret handling, Cloudflare record ownership, and exposed local app behavior.
+The project is intended for local, single-user development workflows. It is not production-ready yet, and some safety hardening is still planned around process isolation and Cloudflare record ownership.
 
 Do not use Upster for untrusted repositories, public multi-user access, or sensitive production workloads until those safety items are completed.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for the full security model, operator caveats, and contributor and AI-agent guidance. Highlights:
+
+- The dashboard requires an admin passphrase. On first run, open the app and set it on the setup screen. The passphrase is stored only as an Argon2id verifier and access is gated by a signed, HttpOnly session cookie.
+- The dashboard port is published on `127.0.0.1` by default. Set `UPSTER_BIND_HOST=0.0.0.0` to expose it on the local network, and only do so behind TLS once you have set an admin passphrase.
+- Cloudflare credentials are stored only as encrypted vault ciphertext and are decrypted in the browser, never persisted in plaintext.
+- Pill processes run with a minimal environment and never inherit the dashboard environment or its secrets.
+- The libSQL database can require an auth token so pill processes cannot read it directly. Generate credentials with `bun run db:credentials` and set `SQLD_AUTH_JWT_KEY` (db) and `DATABASE_AUTH_TOKEN` (dashboard).
+- Restrict which executables pills may run with `UPSTER_ALLOWED_COMMANDS` (comma-separated, by exact name or full path). Leave empty to allow any executable.
+- Cloudflare DNS records created by Upster are tagged as `managed-by-upster`, and Upster refuses to overwrite a record it does not own. Deleting a pill with the vault unlocked also removes its tunnel and DNS record.
+- Override the session signing secret with `UPSTER_SESSION_SECRET`; otherwise one is generated and persisted locally.
 
 ## Development
 

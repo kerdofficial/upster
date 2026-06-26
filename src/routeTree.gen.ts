@@ -9,14 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupRouteImport } from './routes/setup'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsRuntimeRouteImport } from './routes/settings/runtime'
 import { Route as SettingsCloudflareRouteImport } from './routes/settings/cloudflare'
 import { Route as PillsPillIdRouteImport } from './routes/pills/$pillId'
-import { Route as ApiSetupUnlockEnvelopeRouteImport } from './routes/api/setup/unlock-envelope'
 import { Route as ApiRunsRunIdTerminalRouteImport } from './routes/api/runs/$runId/terminal'
 import { Route as ApiRunsRunIdMetricsRouteImport } from './routes/api/runs/$runId/metrics'
 
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,11 +48,6 @@ const PillsPillIdRoute = PillsPillIdRouteImport.update({
   path: '/pills/$pillId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSetupUnlockEnvelopeRoute = ApiSetupUnlockEnvelopeRouteImport.update({
-  id: '/api/setup/unlock-envelope',
-  path: '/api/setup/unlock-envelope',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiRunsRunIdTerminalRoute = ApiRunsRunIdTerminalRouteImport.update({
   id: '/api/runs/$runId/terminal',
   path: '/api/runs/$runId/terminal',
@@ -55,29 +61,32 @@ const ApiRunsRunIdMetricsRoute = ApiRunsRunIdMetricsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/setup': typeof SetupRoute
   '/pills/$pillId': typeof PillsPillIdRoute
   '/settings/cloudflare': typeof SettingsCloudflareRoute
   '/settings/runtime': typeof SettingsRuntimeRoute
-  '/api/setup/unlock-envelope': typeof ApiSetupUnlockEnvelopeRoute
   '/api/runs/$runId/metrics': typeof ApiRunsRunIdMetricsRoute
   '/api/runs/$runId/terminal': typeof ApiRunsRunIdTerminalRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/setup': typeof SetupRoute
   '/pills/$pillId': typeof PillsPillIdRoute
   '/settings/cloudflare': typeof SettingsCloudflareRoute
   '/settings/runtime': typeof SettingsRuntimeRoute
-  '/api/setup/unlock-envelope': typeof ApiSetupUnlockEnvelopeRoute
   '/api/runs/$runId/metrics': typeof ApiRunsRunIdMetricsRoute
   '/api/runs/$runId/terminal': typeof ApiRunsRunIdTerminalRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/setup': typeof SetupRoute
   '/pills/$pillId': typeof PillsPillIdRoute
   '/settings/cloudflare': typeof SettingsCloudflareRoute
   '/settings/runtime': typeof SettingsRuntimeRoute
-  '/api/setup/unlock-envelope': typeof ApiSetupUnlockEnvelopeRoute
   '/api/runs/$runId/metrics': typeof ApiRunsRunIdMetricsRoute
   '/api/runs/$runId/terminal': typeof ApiRunsRunIdTerminalRoute
 }
@@ -85,44 +94,62 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/setup'
     | '/pills/$pillId'
     | '/settings/cloudflare'
     | '/settings/runtime'
-    | '/api/setup/unlock-envelope'
     | '/api/runs/$runId/metrics'
     | '/api/runs/$runId/terminal'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
+    | '/setup'
     | '/pills/$pillId'
     | '/settings/cloudflare'
     | '/settings/runtime'
-    | '/api/setup/unlock-envelope'
     | '/api/runs/$runId/metrics'
     | '/api/runs/$runId/terminal'
   id:
     | '__root__'
     | '/'
+    | '/login'
+    | '/setup'
     | '/pills/$pillId'
     | '/settings/cloudflare'
     | '/settings/runtime'
-    | '/api/setup/unlock-envelope'
     | '/api/runs/$runId/metrics'
     | '/api/runs/$runId/terminal'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
+  SetupRoute: typeof SetupRoute
   PillsPillIdRoute: typeof PillsPillIdRoute
   SettingsCloudflareRoute: typeof SettingsCloudflareRoute
   SettingsRuntimeRoute: typeof SettingsRuntimeRoute
-  ApiSetupUnlockEnvelopeRoute: typeof ApiSetupUnlockEnvelopeRoute
   ApiRunsRunIdMetricsRoute: typeof ApiRunsRunIdMetricsRoute
   ApiRunsRunIdTerminalRoute: typeof ApiRunsRunIdTerminalRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -151,13 +178,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PillsPillIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/setup/unlock-envelope': {
-      id: '/api/setup/unlock-envelope'
-      path: '/api/setup/unlock-envelope'
-      fullPath: '/api/setup/unlock-envelope'
-      preLoaderRoute: typeof ApiSetupUnlockEnvelopeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/runs/$runId/terminal': {
       id: '/api/runs/$runId/terminal'
       path: '/api/runs/$runId/terminal'
@@ -177,10 +197,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
+  SetupRoute: SetupRoute,
   PillsPillIdRoute: PillsPillIdRoute,
   SettingsCloudflareRoute: SettingsCloudflareRoute,
   SettingsRuntimeRoute: SettingsRuntimeRoute,
-  ApiSetupUnlockEnvelopeRoute: ApiSetupUnlockEnvelopeRoute,
   ApiRunsRunIdMetricsRoute: ApiRunsRunIdMetricsRoute,
   ApiRunsRunIdTerminalRoute: ApiRunsRunIdTerminalRoute,
 }

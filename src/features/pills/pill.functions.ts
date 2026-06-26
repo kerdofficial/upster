@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start"
 import { z } from "zod"
 
+import { authMiddleware } from "@/features/auth/auth-middleware"
 import {
   createPill,
   deletePill,
@@ -42,6 +43,11 @@ const pillIdSchema = z.object({
   pillId: z.string().min(1),
 })
 
+const deletePillSchema = z.object({
+  pillId: z.string().min(1),
+  cloudflareConfig: cloudflareConfigSchema.optional(),
+})
+
 const startPillSchema = z.object({
   pillId: z.string().min(1),
   commandName: z.string().min(1),
@@ -55,34 +61,40 @@ const stopPillSchema = z.object({
   runId: z.string().optional(),
 })
 
-export const listPillsFn = createServerFn({ method: "GET" }).handler(() =>
-  getPills()
-)
+export const listPillsFn = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(() => getPills())
 
-export const getRuntimeSettingsFn = createServerFn({ method: "GET" }).handler(
-  () => getRuntimeSettings()
-)
+export const getRuntimeSettingsFn = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(() => getRuntimeSettings())
 
 export const getPillStatusFn = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
   .validator((data: unknown) => pillIdSchema.parse(data))
   .handler(({ data }) => getPillStatus(data))
 
 export const createPillFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((data: unknown) => createPillSchema.parse(data))
   .handler(({ data }) => createPill(data))
 
 export const updatePillFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((data: unknown) => updatePillSchema.parse(data))
   .handler(({ data }) => updatePill(data))
 
 export const deletePillFn = createServerFn({ method: "POST" })
-  .validator((data: unknown) => pillIdSchema.parse(data))
+  .middleware([authMiddleware])
+  .validator((data: unknown) => deletePillSchema.parse(data))
   .handler(({ data }) => deletePill(data))
 
 export const startPillFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((data: unknown) => startPillSchema.parse(data))
   .handler(({ data }) => startPillRuntime(data))
 
 export const stopPillFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
   .validator((data: unknown) => stopPillSchema.parse(data))
   .handler(({ data }) => stopPillRun(data))

@@ -7,8 +7,14 @@ import {
   listPills,
   updatePillRecord,
 } from "@/db/repositories.server"
-import type { CreatePillInput, UpdatePillInput } from "@/features/pills/types"
+import { createCloudflareClient } from "@/features/cloudflare/client.server"
+import type {
+  CloudflareConfig,
+  CreatePillInput,
+  UpdatePillInput,
+} from "@/features/pills/types"
 import {
+  assertAllowedCommand,
   assertValidHostnameLabel,
   ensureWorkspacePath,
   parseCommand,
@@ -34,6 +40,8 @@ export async function createPill(input: CreatePillInput) {
   )
   const argv = parseCommand(input.command)
 
+  assertAllowedCommand(argv, config.allowedCommands)
+
   return createPillRecord({
     ...input,
     name,
@@ -52,14 +60,57 @@ export async function updatePill(input: UpdatePillInput) {
   })
 }
 
-export async function deletePill(input: { pillId: string }) {
+type CloudflareCleanup = "ok" | "failed" | "skipped"
+
+export async function deletePill(input: {
+  pillId: string
+  cloudflareConfig?: CloudflareConfig
+}) {
   const activeRun = await getActiveRun(input.pillId)
 
   if (activeRun) {
     throw new Error("Stop the pill before deleting it.")
   }
 
+  const cloudflareCleanup: CloudflareCleanup = input.cloudflareConfig
+    ? await cleanupCloudflareResources(input.pillId, input.cloudflareConfig)
+    : "skipped"
+
   await deletePillRecord(input.pillId)
+
+  return { cloudflareCleanup }
+}
+
+async function cleanupCloudflareResources(
+  pillId: string,
+  config: CloudflareConfig
+): Promise<CloudflareCleanup> {
+  const pill = await getPillDetail(pillId)
+
+  if (!pill.tunnel) {
+    return "skipped"
+  }
+
+  const client = createCloudflareClient(config)
+  let failed = false
+
+  if (pill.tunnel.dnsRecordId) {
+    try {
+      await client.deleteDnsRecord(pill.tunnel.dnsRecordId)
+    } catch {
+      failed = true
+    }
+  }
+
+  if (pill.tunnel.tunnelId) {
+    try {
+      await client.deleteTunnel(pill.tunnel.tunnelId)
+    } catch {
+      failed = true
+    }
+  }
+
+  return failed ? "failed" : "ok"
 }
 
 export async function getPills() {
@@ -76,6 +127,7 @@ export function getRuntimeSettings() {
   return {
     workspaceRoots: config.workspaceRoots,
     hostWorkspaceRoot: config.hostWorkspaceRoot,
+    allowedCommands: config.allowedCommands,
     appPortRange: config.appPortRange,
     metricsPortRange: config.metricsPortRange,
     publicOrigin: config.publicOrigin,

@@ -33,11 +33,31 @@ Upster is a local Dockerized admin dashboard for publishing short-lived mini app
 
 ## Security Rules
 
+See `SECURITY.md` for the full security model, operator caveats, and the
+detailed guidance for security-relevant changes. The mandatory rules:
+
 - Cloudflare credentials must be stored only as encrypted vault ciphertext.
 - Plaintext secrets may exist only in memory during an explicit runtime action.
-- Pill commands must not receive Cloudflare secrets in their environment.
+- Pill commands must not receive Cloudflare secrets in their environment, and
+  must run with a minimal explicit environment, never the dashboard environment.
 - Pill paths must stay inside configured workspace roots.
 - Prefer argv arrays over shell strings for process execution.
+- Every server function that exposes app data or mutations must use the auth
+  middleware. Only the auth status, login, setup, and logout functions are
+  public.
+- Server routes under `/api/*` must verify the session manually; server-function
+  middleware does not run for them.
+- In a client-reachable `*.functions.ts` file, server-only imports may be used
+  only inside a `.handler()` body, which the compiler strips from the client
+  bundle. Never reference server-only code in the builder chain (`.middleware`,
+  `.validator`), at module scope, or in a component. Middleware must live in a
+  non-`*.server.ts` file and pull server-only code in inside its `.server()`
+  callback. The dev server hides these mistakes; the production build catches
+  them.
+- Keep Cloudflare permissions, environment variables, and container
+  capabilities least-privilege, and document new ones in `.env.example` and
+  `SECURITY.md`.
+- Do not weaken a security control silently. Call it out and update `SECURITY.md`.
 
 ## Code Quality Checks
 
@@ -48,6 +68,10 @@ bun run validate
 ```
 
 `validate` must format with Prettier, run ESLint, run TypeScript typecheck, and run tests.
+
+For security-relevant or runtime changes, also run `bun run build` and verify
+against the Docker stack, not only `bun run dev`. After auth or exposure
+changes, run the penetration tests in `tests/pentest/run.sh`.
 
 ## Commit Style
 

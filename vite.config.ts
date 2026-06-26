@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+
 import { defineConfig } from "vite"
 import { devtools } from "@tanstack/devtools-vite"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
@@ -11,8 +13,15 @@ const allowedHosts = [
     .filter(Boolean) ?? []),
 ]
 
+const pkg = JSON.parse(
+  readFileSync(new URL("./package.json", import.meta.url), "utf-8")
+) as { version: string }
+
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   server: {
     allowedHosts,
   },

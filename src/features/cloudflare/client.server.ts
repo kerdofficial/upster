@@ -15,9 +15,26 @@ type DnsRecordResult = {
   id: string
   name: string
   content: string
+  comment?: string | null
 }
 
 type FetchLike = typeof fetch
+
+export const UPSTER_DNS_COMMENT = "managed-by-upster"
+
+export class CloudflareRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number
+  ) {
+    super(message)
+    this.name = "CloudflareRequestError"
+  }
+}
+
+function isManagedByUpster(record: DnsRecordResult) {
+  return record.comment === UPSTER_DNS_COMMENT
+}
 
 export class CloudflareClient {
   private readonly baseUrl = "https://api.cloudflare.com/client/v4"
@@ -119,25 +136,43 @@ export class CloudflareClient {
     const content = `${input.tunnelId}.cfargotunnel.com`
 
     if (input.existingRecordId) {
-      const result = await this.request<DnsRecordResult>(
-        `/zones/${this.config.zoneId}/dns_records/${input.existingRecordId}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            type: "CNAME",
-            name: input.hostname,
-            content,
-            proxied: true,
-          }),
-        }
-      )
+      const current = await this.getDnsRecordById(input.existingRecordId)
 
-      return result
+      if (current) {
+        // The id comes from our own database, so the record is ours even if it
+        // predates the ownership comment. Refuse only when another owner has
+        // explicitly tagged it, so a corrupted id cannot clobber a foreign
+        // record while upgrades from before the comment still heal cleanly.
+        if (current.comment && current.comment !== UPSTER_DNS_COMMENT) {
+          throw new Error(
+            `DNS record for ${input.hostname} already exists and is not managed by Upster. Refusing to overwrite it.`
+          )
+        }
+
+        if (
+          current.comment === UPSTER_DNS_COMMENT &&
+          current.content === content
+        ) {
+          return current
+        }
+
+        return this.updateDnsRecord({
+          id: current.id,
+          hostname: input.hostname,
+          content,
+        })
+      }
     }
 
     const existing = await this.findDnsRecord(input.hostname)
 
     if (existing) {
+      if (!isManagedByUpster(existing)) {
+        throw new Error(
+          `DNS record for ${input.hostname} already exists and is not managed by Upster. Refusing to overwrite it.`
+        )
+      }
+
       if (existing.content !== content) {
         return this.updateDnsRecord({
           id: existing.id,
@@ -158,6 +193,7 @@ export class CloudflareClient {
           name: input.hostname,
           content,
           proxied: true,
+          comment: UPSTER_DNS_COMMENT,
         }),
       }
     )
@@ -170,6 +206,41 @@ export class CloudflareClient {
         method: "GET",
       }
     )
+  }
+
+  async deleteDnsRecord(recordId: string) {
+    await this.request<unknown>(
+      `/zones/${this.config.zoneId}/dns_records/${recordId}`,
+      {
+        method: "DELETE",
+      }
+    )
+  }
+
+  async deleteTunnel(tunnelId: string) {
+    await this.request<unknown>(
+      `/accounts/${this.config.accountId}/cfd_tunnel/${tunnelId}`,
+      {
+        method: "DELETE",
+      }
+    )
+  }
+
+  private async getDnsRecordById(id: string) {
+    try {
+      return await this.request<DnsRecordResult>(
+        `/zones/${this.config.zoneId}/dns_records/${id}`,
+        {
+          method: "GET",
+        }
+      )
+    } catch (error) {
+      if (error instanceof CloudflareRequestError && error.status === 404) {
+        return null
+      }
+
+      throw error
+    }
   }
 
   private async findDnsRecord(hostname: string) {
@@ -201,6 +272,7 @@ export class CloudflareClient {
           name: input.hostname,
           content: input.content,
           proxied: true,
+          comment: UPSTER_DNS_COMMENT,
         }),
       }
     )
@@ -223,7 +295,7 @@ export class CloudflareClient {
         payload.errors?.map((error) => error.message).join(", ") ||
         "Cloudflare request failed."
 
-      throw new Error(message)
+      throw new CloudflareRequestError(message, response.status)
     }
 
     return payload.result

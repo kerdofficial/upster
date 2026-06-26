@@ -44,6 +44,14 @@ function RuntimeSettingsPage() {
           />
           <Setting label="Dashboard origin" value={settings.publicOrigin} />
           <Setting label="cloudflared binary" value={settings.cloudflaredBin} />
+          <Setting
+            label="Allowed commands"
+            value={
+              settings.allowedCommands.length
+                ? settings.allowedCommands.join(", ")
+                : "any (unrestricted)"
+            }
+          />
         </CardContent>
       </Card>
 

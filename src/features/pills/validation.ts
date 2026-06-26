@@ -72,6 +72,27 @@ export function resolveWorkspacePath(
   return resolvedPath
 }
 
+export function assertAllowedCommand(
+  argv: Array<string>,
+  allowedCommands: Array<string>
+) {
+  if (!allowedCommands.length) {
+    return
+  }
+
+  const executable = argv[0]
+
+  // Require an exact match. A bare name (no path separator) resolves through the
+  // operator-controlled PATH, while a path-qualified argv[0] like "./node" or
+  // "/tmp/node" points at a repo- or attacker-controlled file, so basename
+  // matching must not let it pass.
+  if (!allowedCommands.includes(executable)) {
+    throw new Error(
+      `Command "${executable}" is not in the configured UPSTER_ALLOWED_COMMANDS list.`
+    )
+  }
+}
+
 export function parseCommand(command: string) {
   const parts = command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? []
   const argv = parts.map((part) => part.replace(/^["']|["']$/g, ""))

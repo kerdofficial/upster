@@ -4,6 +4,8 @@ import { and, desc, eq, isNull } from "drizzle-orm"
 
 import { db, ensureDatabase } from "@/db/client.server"
 import {
+  adminUsers,
+  appSettings,
   cloudflareTunnels,
   events,
   pillCommands,
@@ -374,6 +376,57 @@ export async function getSecretVault(name: string) {
 export async function deleteSecretVault(name: string) {
   await ensureDatabase()
   await db.delete(secretVaults).where(eq(secretVaults.id, name))
+}
+
+export async function getAdminUser(id: string) {
+  await ensureDatabase()
+  const [row] = await db.select().from(adminUsers).where(eq(adminUsers.id, id))
+
+  return row ?? null
+}
+
+export async function createAdminUser(input: {
+  id: string
+  passphraseVerifier: string
+}) {
+  await ensureDatabase()
+  const ts = now()
+  await db.insert(adminUsers).values({
+    id: input.id,
+    passphraseVerifier: input.passphraseVerifier,
+    createdAt: ts,
+    updatedAt: ts,
+  })
+}
+
+export async function getAppSetting(key: string) {
+  await ensureDatabase()
+  const [row] = await db
+    .select()
+    .from(appSettings)
+    .where(eq(appSettings.key, key))
+
+  return row?.value ?? null
+}
+
+export async function setAppSetting(key: string, value: string) {
+  await ensureDatabase()
+  const updatedAt = now()
+  await db
+    .insert(appSettings)
+    .values({ key, value, updatedAt })
+    .onConflictDoUpdate({
+      target: appSettings.key,
+      set: { value, updatedAt },
+    })
+}
+
+export async function createAppSettingIfAbsent(key: string, value: string) {
+  await ensureDatabase()
+  await db
+    .insert(appSettings)
+    .values({ key, value, updatedAt: now() })
+    .onConflictDoNothing({ target: appSettings.key })
 }
 
 export async function appendEvent(input: {
