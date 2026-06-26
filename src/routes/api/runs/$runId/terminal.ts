@@ -15,20 +15,50 @@ export const Route = createFileRoute("/api/runs/$runId/terminal")({
 
         const stream = new ReadableStream({
           async start(controller) {
+            let closed = false
+            let unsubscribe: (() => void) | null = null
+
+            const close = () => {
+              if (closed) {
+                return
+              }
+
+              closed = true
+              unsubscribe?.()
+              unsubscribe = null
+
+              try {
+                controller.close()
+              } catch {}
+            }
+
+            const enqueue = (data: unknown) => {
+              if (closed) {
+                return
+              }
+
+              try {
+                controller.enqueue(encoder.encode(formatSse(data)))
+              } catch {
+                close()
+              }
+            }
+
+            request.signal.addEventListener("abort", close, { once: true })
+
             const initialLogs = await getRunLogs(params.runId)
 
             for (const log of initialLogs) {
-              controller.enqueue(encoder.encode(formatSse(log)))
+              enqueue(log)
             }
 
-            const unsubscribe = subscribeRunLogs(params.runId, (log) => {
-              controller.enqueue(encoder.encode(formatSse(log)))
+            unsubscribe = subscribeRunLogs(params.runId, (log) => {
+              enqueue(log)
             })
 
-            request.signal.addEventListener("abort", () => {
-              unsubscribe()
-              controller.close()
-            })
+            if (request.signal.aborted) {
+              close()
+            }
           },
         })
 
