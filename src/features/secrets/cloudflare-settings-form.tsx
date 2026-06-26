@@ -3,9 +3,15 @@
 import { useState } from "react"
 import { useRouter } from "@tanstack/react-router"
 import { useServerFn } from "@tanstack/react-start"
-import { LockIcon, LockOpenIcon, Trash2Icon } from "lucide-react"
+import {
+  LockIcon,
+  LockOpenIcon,
+  ShieldCheckIcon,
+  Trash2Icon,
+} from "lucide-react"
 import { toast } from "sonner"
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,7 +56,7 @@ export function CloudflareSettingsForm({ vault }: { vault: StoredVault }) {
   const hasVault = Boolean(vault)
 
   return (
-    <div className="flex max-w-3xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-medium">Cloudflare</h1>
         <p className="text-sm text-muted-foreground">
@@ -97,7 +103,7 @@ function VaultManager() {
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   return (
-    <Card>
+    <Card className="max-w-2xl">
       <CardHeader>
         <CardTitle>Vault</CardTitle>
         <CardDescription>
@@ -232,14 +238,13 @@ function VaultSetup() {
   }
 
   return (
-    <>
+    <div className="grid items-start gap-6 lg:grid-cols-2">
       <CloudflareSetupGuide />
       <Card>
         <CardHeader>
           <CardTitle>Save vault</CardTitle>
           <CardDescription>
-            The API token is validated, encrypted in the browser, then stored as
-            ciphertext.
+            Paste your Cloudflare details to create an encrypted local vault.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -288,8 +293,17 @@ function VaultSetup() {
               {pending ? "Saving..." : "Validate and save vault"}
             </Button>
           </form>
+
+          <Alert className="mt-4">
+            <ShieldCheckIcon />
+            <AlertTitle>Stored encrypted</AlertTitle>
+            <AlertDescription>
+              The token is validated, then encrypted in your browser with your
+              passphrase. Only the ciphertext is stored, and it is never logged.
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
-    </>
+    </div>
   )
 }
