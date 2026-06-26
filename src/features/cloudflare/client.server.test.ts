@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { CloudflareClient } from "@/features/cloudflare/client.server"
+import {
+  CloudflareClient,
+  UPSTER_DNS_COMMENT,
+} from "@/features/cloudflare/client.server"
 
 const config = {
   accountId: "account",
@@ -88,7 +91,7 @@ describe("CloudflareClient", () => {
     expect(fetcher).toHaveBeenCalledTimes(3)
   })
 
-  it("updates an existing dns record when it points to another tunnel", async () => {
+  it("updates an existing dns record it owns when it points to another tunnel", async () => {
     const fetcher = vi
       .fn()
       .mockResolvedValueOnce(
@@ -97,6 +100,7 @@ describe("CloudflareClient", () => {
             id: "dns-id",
             name: "sample.example.com",
             content: "old-tunnel.cfargotunnel.com",
+            comment: UPSTER_DNS_COMMENT,
           },
         ])
       )
@@ -105,6 +109,7 @@ describe("CloudflareClient", () => {
           id: "dns-id",
           name: "sample.example.com",
           content: "new-tunnel.cfargotunnel.com",
+          comment: UPSTER_DNS_COMMENT,
         })
       )
 
@@ -119,6 +124,50 @@ describe("CloudflareClient", () => {
     expect(fetcher).toHaveBeenLastCalledWith(
       "https://api.cloudflare.com/client/v4/zones/zone/dns_records/dns-id",
       expect.objectContaining({ method: "PUT" })
+    )
+  })
+
+  it("refuses to overwrite a dns record it does not own", async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(
+      jsonResponse([
+        {
+          id: "foreign-id",
+          name: "sample.example.com",
+          content: "someone-else.example.com",
+        },
+      ])
+    )
+
+    const client = new CloudflareClient(config, fetcher)
+
+    await expect(
+      client.ensureDnsRecord({
+        hostname: "sample.example.com",
+        tunnelId: "new-tunnel",
+      })
+    ).rejects.toThrow(/not managed by Upster/)
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
+  it("deletes the dns record and tunnel during cleanup", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(null))
+      .mockResolvedValueOnce(jsonResponse(null))
+
+    const client = new CloudflareClient(config, fetcher)
+    await client.deleteDnsRecord("dns-id")
+    await client.deleteTunnel("tunnel-id")
+
+    expect(fetcher).toHaveBeenNthCalledWith(
+      1,
+      "https://api.cloudflare.com/client/v4/zones/zone/dns_records/dns-id",
+      expect.objectContaining({ method: "DELETE" })
+    )
+    expect(fetcher).toHaveBeenNthCalledWith(
+      2,
+      "https://api.cloudflare.com/client/v4/accounts/account/cfd_tunnel/tunnel-id",
+      expect.objectContaining({ method: "DELETE" })
     )
   })
 })

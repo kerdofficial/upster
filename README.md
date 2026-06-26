@@ -18,6 +18,7 @@ Do not use Upster for untrusted repositories, public multi-user access, or sensi
 - Pill processes run with a minimal environment and never inherit the dashboard environment or its secrets.
 - The libSQL database can require an auth token so pill processes cannot read it directly. Generate credentials with `bun run db:credentials` and set `SQLD_AUTH_JWT_KEY` (db) and `DATABASE_AUTH_TOKEN` (dashboard).
 - Restrict which executables pills may run with `UPSTER_ALLOWED_COMMANDS` (comma separated, by name or full path). Leave empty to allow any executable.
+- Cloudflare DNS records created by Upster are tagged as `managed-by-upster`, and Upster refuses to overwrite a record it does not own. Deleting a pill with the vault unlocked also removes its tunnel and DNS record.
 - Override the session signing secret with `UPSTER_SESSION_SECRET`; otherwise one is generated and persisted locally.
 
 ## Development

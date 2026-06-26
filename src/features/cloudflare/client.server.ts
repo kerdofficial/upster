@@ -15,9 +15,16 @@ type DnsRecordResult = {
   id: string
   name: string
   content: string
+  comment?: string | null
 }
 
 type FetchLike = typeof fetch
+
+export const UPSTER_DNS_COMMENT = "managed-by-upster"
+
+function isManagedByUpster(record: DnsRecordResult) {
+  return record.comment === UPSTER_DNS_COMMENT
+}
 
 export class CloudflareClient {
   private readonly baseUrl = "https://api.cloudflare.com/client/v4"
@@ -119,25 +126,22 @@ export class CloudflareClient {
     const content = `${input.tunnelId}.cfargotunnel.com`
 
     if (input.existingRecordId) {
-      const result = await this.request<DnsRecordResult>(
-        `/zones/${this.config.zoneId}/dns_records/${input.existingRecordId}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            type: "CNAME",
-            name: input.hostname,
-            content,
-            proxied: true,
-          }),
-        }
-      )
-
-      return result
+      return this.updateDnsRecord({
+        id: input.existingRecordId,
+        hostname: input.hostname,
+        content,
+      })
     }
 
     const existing = await this.findDnsRecord(input.hostname)
 
     if (existing) {
+      if (!isManagedByUpster(existing)) {
+        throw new Error(
+          `DNS record for ${input.hostname} already exists and is not managed by Upster. Refusing to overwrite it.`
+        )
+      }
+
       if (existing.content !== content) {
         return this.updateDnsRecord({
           id: existing.id,
@@ -158,6 +162,7 @@ export class CloudflareClient {
           name: input.hostname,
           content,
           proxied: true,
+          comment: UPSTER_DNS_COMMENT,
         }),
       }
     )
@@ -168,6 +173,24 @@ export class CloudflareClient {
       `/accounts/${this.config.accountId}/cfd_tunnel/${tunnelId}/token`,
       {
         method: "GET",
+      }
+    )
+  }
+
+  async deleteDnsRecord(recordId: string) {
+    await this.request<unknown>(
+      `/zones/${this.config.zoneId}/dns_records/${recordId}`,
+      {
+        method: "DELETE",
+      }
+    )
+  }
+
+  async deleteTunnel(tunnelId: string) {
+    await this.request<unknown>(
+      `/accounts/${this.config.accountId}/cfd_tunnel/${tunnelId}`,
+      {
+        method: "DELETE",
       }
     )
   }
@@ -201,6 +224,7 @@ export class CloudflareClient {
           name: input.hostname,
           content: input.content,
           proxied: true,
+          comment: UPSTER_DNS_COMMENT,
         }),
       }
     )
