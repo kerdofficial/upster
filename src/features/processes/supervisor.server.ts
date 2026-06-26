@@ -21,6 +21,7 @@ import type {
   RunLog,
   StartPillInput,
 } from "@/features/pills/types"
+import { assertAllowedCommand } from "@/features/pills/validation"
 import { findAvailablePort } from "@/features/pills/ports.server"
 import { buildProcessEnv } from "@/features/processes/process-env"
 import { emitRunLog, nextLogSequence } from "@/features/terminal/log-bus.server"
@@ -245,6 +246,9 @@ export async function startPillRuntime(input: StartPillInput) {
 
   const pill = await getPillDetail(input.pillId)
   const command = await getPillCommand(input.pillId, input.commandName)
+
+  assertAllowedCommand(command.argv, getUpsterConfig().allowedCommands)
+
   const ports = await preparePorts(input.pillId, input.rotatePorts ?? false)
 
   await updatePillStatus(input.pillId, "starting")

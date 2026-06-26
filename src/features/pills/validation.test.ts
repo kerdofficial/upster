@@ -26,9 +26,9 @@ describe("pill validation", () => {
     ).not.toThrow()
   })
 
-  it("allows commands matching the allowlist by name or full path", () => {
+  it("allows a bare command or an exact full path in the allowlist", () => {
     expect(() =>
-      assertAllowedCommand(["/usr/bin/bun", "run", "dev"], ["bun"])
+      assertAllowedCommand(["bun", "run", "dev"], ["bun"])
     ).not.toThrow()
     expect(() =>
       assertAllowedCommand(
@@ -36,6 +36,15 @@ describe("pill validation", () => {
         ["/usr/local/bin/node"]
       )
     ).not.toThrow()
+  })
+
+  it("rejects path-qualified executables that only match by basename", () => {
+    expect(() => assertAllowedCommand(["./node", "x"], ["node"])).toThrow(
+      /not in the configured/
+    )
+    expect(() => assertAllowedCommand(["/tmp/node"], ["node"])).toThrow(
+      /not in the configured/
+    )
   })
 
   it("rejects commands outside the allowlist", () => {

@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs"
-import { basename, isAbsolute, relative, resolve } from "node:path"
+import { isAbsolute, relative, resolve } from "node:path"
 
 export function slugify(value: string) {
   return value
@@ -81,14 +81,14 @@ export function assertAllowedCommand(
   }
 
   const executable = argv[0]
-  const name = basename(executable)
 
-  if (
-    !allowedCommands.includes(executable) &&
-    !allowedCommands.includes(name)
-  ) {
+  // Require an exact match. A bare name (no path separator) resolves through the
+  // operator-controlled PATH, while a path-qualified argv[0] like "./node" or
+  // "/tmp/node" points at a repo- or attacker-controlled file, so basename
+  // matching must not let it pass.
+  if (!allowedCommands.includes(executable)) {
     throw new Error(
-      `Command "${name}" is not in the configured UPSTER_ALLOWED_COMMANDS list.`
+      `Command "${executable}" is not in the configured UPSTER_ALLOWED_COMMANDS list.`
     )
   }
 }
