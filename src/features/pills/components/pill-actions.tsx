@@ -142,13 +142,19 @@ export function PillActions({
               onClick={async () => {
                 setPending(true)
                 try {
-                  await deletePill({
+                  const result = await deletePill({
                     data: {
                       pillId: pill.id,
                       cloudflareConfig: config ?? undefined,
                     },
                   })
-                  toast.success("Pill deleted.")
+                  if (result.cloudflareCleanup === "failed") {
+                    toast.warning(
+                      "Pill deleted, but its Cloudflare tunnel or DNS record may remain. Check your Cloudflare dashboard."
+                    )
+                  } else {
+                    toast.success("Pill deleted.")
+                  }
                   setDeleteOpen(false)
                   await router.invalidate()
                 } catch (err) {

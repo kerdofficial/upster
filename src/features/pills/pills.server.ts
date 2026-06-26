@@ -60,6 +60,8 @@ export async function updatePill(input: UpdatePillInput) {
   })
 }
 
+type CloudflareCleanup = "ok" | "failed" | "skipped"
+
 export async function deletePill(input: {
   pillId: string
   cloudflareConfig?: CloudflareConfig
@@ -70,30 +72,33 @@ export async function deletePill(input: {
     throw new Error("Stop the pill before deleting it.")
   }
 
-  if (input.cloudflareConfig) {
-    await cleanupCloudflareResources(input.pillId, input.cloudflareConfig)
-  }
+  const cloudflareCleanup: CloudflareCleanup = input.cloudflareConfig
+    ? await cleanupCloudflareResources(input.pillId, input.cloudflareConfig)
+    : "skipped"
 
   await deletePillRecord(input.pillId)
+
+  return { cloudflareCleanup }
 }
 
 async function cleanupCloudflareResources(
   pillId: string,
   config: CloudflareConfig
-) {
+): Promise<CloudflareCleanup> {
   const pill = await getPillDetail(pillId)
 
   if (!pill.tunnel) {
-    return
+    return "skipped"
   }
 
   const client = createCloudflareClient(config)
+  let failed = false
 
   if (pill.tunnel.dnsRecordId) {
     try {
       await client.deleteDnsRecord(pill.tunnel.dnsRecordId)
     } catch {
-      // Best effort: the record may already be gone.
+      failed = true
     }
   }
 
@@ -101,9 +106,11 @@ async function cleanupCloudflareResources(
     try {
       await client.deleteTunnel(pill.tunnel.tunnelId)
     } catch {
-      // Best effort: the tunnel may already be gone or still draining.
+      failed = true
     }
   }
+
+  return failed ? "failed" : "ok"
 }
 
 export async function getPills() {
