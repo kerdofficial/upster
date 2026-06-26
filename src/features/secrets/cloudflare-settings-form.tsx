@@ -272,9 +272,13 @@ function VaultSetup() {
                 id="passphrase"
                 name="passphrase"
                 type="password"
-                minLength={8}
+                minLength={12}
                 required
               />
+              <FieldDescription>
+                Use at least 12 characters. This decrypts the vault in your
+                browser and is never sent to the server.
+              </FieldDescription>
             </Field>
           </FieldGroup>
           <Button type="submit" disabled={pending}>
