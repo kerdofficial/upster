@@ -207,6 +207,31 @@ function killProcess(child: ChildProcessWithoutNullStreams | null) {
   }, 3000).unref()
 }
 
+function waitForEarlyExit(
+  child: ChildProcessWithoutNullStreams,
+  timeoutMs: number
+) {
+  return new Promise<number | null | undefined>((resolve) => {
+    const timeout = setTimeout(() => {
+      child.off("exit", onExit)
+      resolve(undefined)
+    }, timeoutMs)
+
+    timeout.unref()
+
+    function onExit(code: number | null) {
+      clearTimeout(timeout)
+      resolve(code)
+    }
+
+    child.once("exit", onExit)
+  })
+}
+
+function appExitError(code: number | null) {
+  return new Error(`App process exited with code ${code ?? "null"}.`)
+}
+
 function scheduleExpiry(run: PillRun, managed: ManagedRun) {
   if (!run.expiresAt) {
     return null
@@ -282,12 +307,31 @@ export async function startPillRuntime(input: StartPillInput) {
     managed.appProcess = appProcess
     await updateRun(run.id, { appPid: appProcess.pid ?? null })
 
+    let appExitCode: number | null | undefined
+    let startCompleted = false
+
+    appProcess.on("exit", (code) => {
+      appExitCode = code
+      if (startCompleted) {
+        void handleAppExit(run.id, input.pillId, code)
+      }
+    })
+
+    const earlyExitCode = await waitForEarlyExit(appProcess, 1000)
+    if (earlyExitCode !== undefined) {
+      throw appExitError(earlyExitCode)
+    }
+
     const { token } = await prepareCloudflareTunnel({
       runId: run.id,
       pillId: input.pillId,
       appPort: ports.appPort,
       config: input.cloudflareConfig,
     })
+
+    if (appExitCode !== undefined || appProcess.exitCode !== null) {
+      throw appExitError(appExitCode ?? appProcess.exitCode)
+    }
 
     const config = getUpsterConfig()
     const tunnelProcess = spawnLoggedProcess({
@@ -307,6 +351,7 @@ export async function startPillRuntime(input: StartPillInput) {
 
     managed.tunnelProcess = tunnelProcess
     managed.expiryTimer = scheduleExpiry(run, managed)
+    startCompleted = true
 
     await updateRun(run.id, {
       tunnelPid: tunnelProcess.pid ?? null,
@@ -314,9 +359,6 @@ export async function startPillRuntime(input: StartPillInput) {
     })
     await updatePillStatus(input.pillId, "running")
 
-    appProcess.on("exit", (code) => {
-      void handleAppExit(run.id, input.pillId, code)
-    })
     tunnelProcess.on("exit", (code) => {
       void handleTunnelExit(run.id, input.pillId, code)
     })
