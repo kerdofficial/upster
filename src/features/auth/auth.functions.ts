@@ -11,11 +11,14 @@ import {
 } from "@/features/auth/auth.server"
 
 const setupSchema = z.object({
-  passphrase: z.string().min(12, "Use at least 12 characters."),
+  passphrase: z
+    .string()
+    .min(12, "Use at least 12 characters.")
+    .max(1024, "Passphrase is too long."),
 })
 
 const loginSchema = z.object({
-  passphrase: z.string().min(1),
+  passphrase: z.string().min(1).max(1024),
 })
 
 export const getAuthStatusFn = createServerFn({ method: "GET" }).handler(

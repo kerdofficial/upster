@@ -421,6 +421,14 @@ export async function setAppSetting(key: string, value: string) {
     })
 }
 
+export async function createAppSettingIfAbsent(key: string, value: string) {
+  await ensureDatabase()
+  await db
+    .insert(appSettings)
+    .values({ key, value, updatedAt: now() })
+    .onConflictDoNothing({ target: appSettings.key })
+}
+
 export async function appendEvent(input: {
   type: string
   pillId?: string
