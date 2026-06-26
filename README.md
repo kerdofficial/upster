@@ -6,9 +6,18 @@ Upster is a local Dockerized dashboard for publishing short-lived mini apps thro
 
 Upster is in alpha and under active development. Use it at your own risk.
 
-The project is intended for local, single-user development workflows. It is not production-ready yet, and some safety hardening is still planned around process isolation, secret handling, Cloudflare record ownership, and exposed local app behavior.
+The project is intended for local, single-user development workflows. It is not production-ready yet, and some safety hardening is still planned around process isolation and Cloudflare record ownership.
 
 Do not use Upster for untrusted repositories, public multi-user access, or sensitive production workloads until those safety items are completed.
+
+## Security
+
+- The dashboard requires an admin passphrase. On first run, open the app and set it on the setup screen. The passphrase is stored only as an Argon2id verifier and access is gated by a signed, HttpOnly session cookie.
+- The dashboard port is published on `127.0.0.1` by default. Set `UPSTER_BIND_HOST=0.0.0.0` to expose it on the local network, and only do so behind TLS once you have set an admin passphrase.
+- Cloudflare credentials are stored only as encrypted vault ciphertext and are decrypted in the browser, never persisted in plaintext.
+- Pill processes run with a minimal environment and never inherit the dashboard environment or its secrets.
+- Restrict which executables pills may run with `UPSTER_ALLOWED_COMMANDS` (comma separated, by name or full path). Leave empty to allow any executable.
+- Override the session signing secret with `UPSTER_SESSION_SECRET`; otherwise one is generated and persisted locally.
 
 ## Development
 
