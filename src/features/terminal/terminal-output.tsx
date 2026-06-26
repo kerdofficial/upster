@@ -4,6 +4,10 @@ import { useEffect, useRef, useState } from "react"
 
 import type { RunLog } from "@/features/pills/types"
 
+function normalizeTerminalChunk(chunk: string) {
+  return chunk.replace(/\r?\n/g, "\r\n")
+}
+
 export function TerminalOutput({
   runId,
   initialLogs,
@@ -47,10 +51,17 @@ export function TerminalOutput({
         term.loadAddon(fit)
         term.open(containerRef.current)
         fit.fit()
-        initialLogs.forEach((log) => term.write(log.chunk))
+        const resizeObserver = new ResizeObserver(() => fit.fit())
+        resizeObserver.observe(containerRef.current)
+        initialLogs.forEach((log) =>
+          term.write(normalizeTerminalChunk(log.chunk))
+        )
         terminalRef.current = {
-          write: (data) => term.write(data),
-          dispose: () => term.dispose(),
+          write: (data) => term.write(normalizeTerminalChunk(data)),
+          dispose: () => {
+            resizeObserver.disconnect()
+            term.dispose()
+          },
         }
         setGhosttyReady(true)
       } catch {
@@ -85,17 +96,17 @@ export function TerminalOutput({
 
   if (!runId) {
     return (
-      <pre className="min-h-56 rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+      <pre className="min-h-80 rounded-lg bg-muted p-3 text-xs text-muted-foreground">
         No active run.
       </pre>
     )
   }
 
   return (
-    <div className="min-h-72 overflow-hidden rounded-lg bg-zinc-950">
-      <div ref={containerRef} className="h-72 w-full" />
+    <div className="relative h-full min-h-[32rem] overflow-hidden rounded-lg bg-zinc-950">
+      <div ref={containerRef} className="absolute inset-0" />
       {!ghosttyReady && (
-        <pre className="h-72 overflow-auto p-3 text-xs text-zinc-100">
+        <pre className="absolute inset-3 overflow-auto p-3 text-xs whitespace-pre-wrap text-zinc-100">
           {plainLogs.map((log) => log.chunk).join("")}
         </pre>
       )}

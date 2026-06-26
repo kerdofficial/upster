@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { PlusCircleIcon } from "lucide-react"
+import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -136,7 +136,21 @@ function PillTableRow({ pill }: { pill: PillListItem }) {
       <TableCell>
         <StatusBadge status={pill.status} />
       </TableCell>
-      <TableCell>{pill.hostname ?? "-"}</TableCell>
+      <TableCell>
+        {pill.hostname ? (
+          <a
+            href={`https://${pill.hostname}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+          >
+            {pill.hostname}
+            <ExternalLinkIcon className="size-3" />
+          </a>
+        ) : (
+          "-"
+        )}
+      </TableCell>
       <TableCell>
         <PortSummary appPort={pill.appPort} metricsPort={pill.metricsPort} />
       </TableCell>

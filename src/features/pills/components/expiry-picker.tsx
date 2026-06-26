@@ -76,29 +76,26 @@ export function ExpiryPicker({
           <CalendarClockIcon data-icon="inline-start" />
           {label}
         </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          className="w-auto overflow-hidden rounded-lg border bg-popover p-0 shadow-lg"
-        >
-          <FieldGroup className="gap-0">
+        <PopoverContent align="start" className="w-72 overflow-visible p-0">
+          <FieldGroup className="gap-0 rounded-lg bg-popover">
             <Calendar
+              className="mx-auto w-full bg-transparent"
               mode="single"
               selected={parsedDate ?? undefined}
-              captionLayout="dropdown"
               defaultMonth={parsedDate ?? undefined}
               disabled={{ before: new Date() }}
               onSelect={(date) => {
                 onChange(toIsoString(date, time))
               }}
             />
-            <Field className="w-32 px-3 pb-3">
+            <Field className="mx-auto w-full px-3 pb-3">
               <FieldLabel htmlFor="expiry-time">Time</FieldLabel>
               <Input
                 id="expiry-time"
                 type="time"
                 step="60"
                 value={time}
-                className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                className="w-full appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                 onChange={(event) => {
                   const nextTime = event.target.value
                   setTime(nextTime)

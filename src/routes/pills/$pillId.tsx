@@ -1,6 +1,5 @@
-import { useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { ArrowLeftIcon } from "lucide-react"
+import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,7 +11,6 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { MetricsPanel } from "@/features/metrics/metrics-panel"
-import { ExpiryPicker } from "@/features/pills/components/expiry-picker"
 import { PillActions } from "@/features/pills/components/pill-actions"
 import { StatusBadge } from "@/features/pills/components/status-badge"
 import { getPillStatusFn } from "@/features/pills/pill.functions"
@@ -26,10 +24,7 @@ export const Route = createFileRoute("/pills/$pillId")({
 function PillDetailPage() {
   const pill = Route.useLoaderData()
   const runId = pill.activeRun?.id ?? null
-  const [expiresAt, setExpiresAt] = useState<string | null>(
-    pill.activeRun?.expiresAt ?? null
-  )
-  const isRunning = Boolean(pill.activeRun)
+  const expiresAt = pill.activeRun?.expiresAt ?? null
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,24 +42,19 @@ function PillDetailPage() {
           </div>
         </div>
         <div className="flex w-full max-w-md flex-col items-start gap-2 sm:items-end">
-          <ExpiryPicker
-            value={expiresAt}
-            onChange={setExpiresAt}
-            disabled={isRunning}
-          />
           <PillActions pill={pill} expiresAt={expiresAt} />
         </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <Card>
+        <Card className="min-h-[42rem]">
           <CardHeader>
             <CardTitle>Terminal</CardTitle>
             <CardDescription>
               Live output from the app process and cloudflared.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-0 flex-1">
             <TerminalOutput runId={runId} initialLogs={pill.recentLogs} />
           </CardContent>
         </Card>
@@ -78,7 +68,7 @@ function PillDetailPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-              <Detail label="Hostname" value={pill.hostname ?? "-"} />
+              <LinkDetail label="Hostname" value={pill.hostname} />
               <Detail label="App port" value={String(pill.appPort ?? "-")} />
               <Detail
                 label="Metrics port"
@@ -92,7 +82,7 @@ function PillDetailPage() {
               {pill.commands.map((command) => (
                 <div key={command.id} className="flex flex-col gap-1">
                   <div className="font-medium">{command.name}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="font-mono text-xs text-muted-foreground">
                     {command.argv.join(" ")}
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -115,6 +105,27 @@ function Detail({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between gap-4">
       <span className="text-xs text-muted-foreground">{label}</span>
       <span className="truncate text-xs font-medium">{value}</span>
+    </div>
+  )
+}
+
+function LinkDetail({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      {value ? (
+        <a
+          href={`https://${value}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex min-w-0 items-center gap-1 text-xs font-medium text-primary hover:underline"
+        >
+          <span className="truncate">{value}</span>
+          <ExternalLinkIcon className="size-3 shrink-0" />
+        </a>
+      ) : (
+        <span className="truncate text-xs font-medium">-</span>
+      )}
     </div>
   )
 }
