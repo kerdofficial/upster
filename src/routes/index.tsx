@@ -75,7 +75,7 @@ function App() {
                     <TableHead>Hostname</TableHead>
                     <TableHead>Ports</TableHead>
                     <TableHead>Expiry</TableHead>
-                    <TableHead>Action</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -140,14 +140,14 @@ function PillTableRow({ pill }: { pill: PillListItem }) {
       <TableCell>
         <PortSummary appPort={pill.appPort} metricsPort={pill.metricsPort} />
       </TableCell>
-      <TableCell>
+      <TableCell className="min-w-[15rem]">
         <ExpiryPicker
           value={expiresAt}
           onChange={setExpiresAt}
           disabled={isRunning}
         />
       </TableCell>
-      <TableCell>
+      <TableCell className="text-right">
         <PillActions pill={pill} expiresAt={expiresAt} />
       </TableCell>
     </TableRow>

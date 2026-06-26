@@ -40,9 +40,10 @@ export function CreatePillForm() {
           className="flex flex-col gap-4"
           onSubmit={async (event) => {
             event.preventDefault()
+            const formElement = event.currentTarget
             setPending(true)
 
-            const form = new FormData(event.currentTarget)
+            const form = new FormData(formElement)
 
             try {
               await createPill({
@@ -57,7 +58,7 @@ export function CreatePillForm() {
                   healthcheckPath: String(form.get("healthcheckPath") ?? ""),
                 },
               })
-              event.currentTarget.reset()
+              formElement.reset()
               toast.success("Pill added.")
               await router.invalidate()
             } catch (err) {

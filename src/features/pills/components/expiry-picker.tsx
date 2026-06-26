@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { format } from "date-fns"
 import { CalendarClockIcon, XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -57,17 +58,17 @@ export function ExpiryPicker({
     parsedDate ? formatLocalTime(parsedDate) : "23:59"
   )
   const label = parsedDate
-    ? `${parsedDate.toLocaleDateString()} ${formatLocalTime(parsedDate)}`
+    ? `${format(parsedDate, "PP")} ${formatLocalTime(parsedDate)}`
     : "No expiry"
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex w-[14.25rem] items-center gap-2">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           render={
             <Button
               variant="outline"
-              className="w-[12rem] justify-start"
+              className="w-48 justify-start"
               disabled={disabled}
             />
           }
@@ -75,22 +76,29 @@ export function ExpiryPicker({
           <CalendarClockIcon data-icon="inline-start" />
           {label}
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-auto">
-          <FieldGroup className="gap-3">
+        <PopoverContent
+          align="start"
+          className="w-auto overflow-hidden rounded-lg border bg-popover p-0 shadow-lg"
+        >
+          <FieldGroup className="gap-0">
             <Calendar
               mode="single"
               selected={parsedDate ?? undefined}
+              captionLayout="dropdown"
+              defaultMonth={parsedDate ?? undefined}
               disabled={{ before: new Date() }}
               onSelect={(date) => {
                 onChange(toIsoString(date, time))
               }}
             />
-            <Field>
+            <Field className="w-32 px-3 pb-3">
               <FieldLabel htmlFor="expiry-time">Time</FieldLabel>
               <Input
                 id="expiry-time"
                 type="time"
+                step="60"
                 value={time}
+                className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
                 onChange={(event) => {
                   const nextTime = event.target.value
                   setTime(nextTime)
@@ -101,17 +109,16 @@ export function ExpiryPicker({
           </FieldGroup>
         </PopoverContent>
       </Popover>
-      {value && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onChange(null)}
-          disabled={disabled}
-          aria-label="Clear expiry"
-        >
-          <XIcon />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className={value ? undefined : "invisible"}
+        onClick={() => onChange(null)}
+        disabled={disabled || !value}
+        aria-label="Clear expiry"
+      >
+        <XIcon />
+      </Button>
     </div>
   )
 }
