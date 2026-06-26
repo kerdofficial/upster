@@ -184,12 +184,13 @@ describe("CloudflareClient", () => {
     )
   })
 
-  it("refuses to overwrite the record referenced by existingRecordId when not owned", async () => {
+  it("refuses to overwrite a stored record id owned by someone else", async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(
       jsonResponse({
         id: "dns-id",
         name: "sample.example.com",
         content: "someone-else.example.com",
+        comment: "managed-by-another-tool",
       })
     )
 
@@ -203,6 +204,39 @@ describe("CloudflareClient", () => {
       })
     ).rejects.toThrow(/not managed by Upster/)
     expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
+  it("heals a stored record created before ownership tagging", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          id: "dns-id",
+          name: "sample.example.com",
+          content: "old-tunnel.cfargotunnel.com",
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          id: "dns-id",
+          name: "sample.example.com",
+          content: "new-tunnel.cfargotunnel.com",
+          comment: UPSTER_DNS_COMMENT,
+        })
+      )
+
+    const client = new CloudflareClient(config, fetcher)
+    const record = await client.ensureDnsRecord({
+      hostname: "sample.example.com",
+      tunnelId: "new-tunnel",
+      existingRecordId: "dns-id",
+    })
+
+    expect(record.content).toBe("new-tunnel.cfargotunnel.com")
+    expect(fetcher).toHaveBeenLastCalledWith(
+      "https://api.cloudflare.com/client/v4/zones/zone/dns_records/dns-id",
+      expect.objectContaining({ method: "PUT" })
+    )
   })
 
   it("deletes the dns record and tunnel during cleanup", async () => {

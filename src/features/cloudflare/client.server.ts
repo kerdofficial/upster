@@ -22,6 +22,16 @@ type FetchLike = typeof fetch
 
 export const UPSTER_DNS_COMMENT = "managed-by-upster"
 
+export class CloudflareRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number
+  ) {
+    super(message)
+    this.name = "CloudflareRequestError"
+  }
+}
+
 function isManagedByUpster(record: DnsRecordResult) {
   return record.comment === UPSTER_DNS_COMMENT
 }
@@ -129,10 +139,21 @@ export class CloudflareClient {
       const current = await this.getDnsRecordById(input.existingRecordId)
 
       if (current) {
-        if (!isManagedByUpster(current)) {
+        // The id comes from our own database, so the record is ours even if it
+        // predates the ownership comment. Refuse only when another owner has
+        // explicitly tagged it, so a corrupted id cannot clobber a foreign
+        // record while upgrades from before the comment still heal cleanly.
+        if (current.comment && current.comment !== UPSTER_DNS_COMMENT) {
           throw new Error(
             `DNS record for ${input.hostname} already exists and is not managed by Upster. Refusing to overwrite it.`
           )
+        }
+
+        if (
+          current.comment === UPSTER_DNS_COMMENT &&
+          current.content === content
+        ) {
+          return current
         }
 
         return this.updateDnsRecord({
@@ -213,8 +234,12 @@ export class CloudflareClient {
           method: "GET",
         }
       )
-    } catch {
-      return null
+    } catch (error) {
+      if (error instanceof CloudflareRequestError && error.status === 404) {
+        return null
+      }
+
+      throw error
     }
   }
 
@@ -270,7 +295,7 @@ export class CloudflareClient {
         payload.errors?.map((error) => error.message).join(", ") ||
         "Cloudflare request failed."
 
-      throw new Error(message)
+      throw new CloudflareRequestError(message, response.status)
     }
 
     return payload.result
