@@ -60,6 +60,10 @@ function readSessionCookie() {
 }
 
 function isSecureRequest() {
+  if (process.env.UPSTER_SECURE_COOKIES === "true") {
+    return true
+  }
+
   return getRequestHeader("x-forwarded-proto") === "https"
 }
 
