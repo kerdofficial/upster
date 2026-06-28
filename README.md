@@ -2,6 +2,12 @@
 
 Upster is a local Dockerized dashboard for publishing short-lived mini apps through Cloudflare Tunnel.
 
+## Repository layout
+
+Upster uses a Bun workspace layout. The dashboard app lives in `apps/web`, while
+the root `package.json` keeps the common commands for local development,
+validation, database tasks, and Docker builds.
+
 ## Status
 
 Upster is in alpha and under active development. Use it at your own risk.

@@ -13,6 +13,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* /tmp/cloudflared.deb
 
 COPY package.json bun.lock ./
+COPY apps/web/package.json apps/web/package.json
 RUN bun install --frozen-lockfile
 
 COPY . .
@@ -28,4 +29,4 @@ ENV DATABASE_URL=http://db:8080
 
 EXPOSE 3377
 
-CMD ["bun", "run", "preview", "--", "--host", "0.0.0.0", "--port", "3377"]
+CMD ["bun", "run", "--cwd", "apps/web", "preview", "--host", "0.0.0.0", "--port", "3377"]
