@@ -6,8 +6,8 @@
 // does not leak through terminal capture or CI logs. Pass --stdout to print
 // them instead.
 //
-//   bun run scripts/generate-db-credentials.ts
-//   bun run scripts/generate-db-credentials.ts --stdout
+//   bun run db:credentials
+//   bun run db:credentials -- --stdout
 //
 // SQLD_AUTH_JWT_KEY goes to the db service (it verifies tokens with it).
 // DATABASE_AUTH_TOKEN goes to the upster service (it presents it to the db).
